@@ -17,7 +17,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class UserCreateCommand extends Command
 {
   protected static $defaultName = 'app:user:create';
-  protected static $defaultDescription = 'Add a short description for your command';
+  protected static $defaultDescription = 'Création d\'un utilisateur';
 
   public function __construct(EntityManagerInterface $om, UserPasswordHasherInterface $passwordHasher)
   {
