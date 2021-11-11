@@ -38,7 +38,6 @@ class UserDeleteCommand extends Command
 
     $username = $input->getArgument('username');
 
-
     // Demande du nom utilisateur si non fournit en paramètre de la commande
     if (!$username) {
       $users = $userRepository->findAll();

@@ -10,15 +10,17 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class UserCreateCommand extends Command
+
+class UserUpdateCommand extends Command
 {
-  protected static $defaultName = 'app:user:create';
-  protected static $defaultDescription = 'Création d\'un utilisateur';
+  protected static $defaultName = 'app:user:update';
+  protected static $defaultDescription = 'Modifier un utilisateur';
 
   public function __construct(EntityManagerInterface $om, UserPasswordHasherInterface $passwordHasher)
   {
@@ -44,34 +46,47 @@ class UserCreateCommand extends Command
     $password = $input->getArgument('password');
     $is_admin = $input->getOption('admin');
 
+    $user = null;
+    $userRepository = $this->om->getRepository(User::class);
+
     // Demande du nom utilisateur si non fournit en paramètre de la commande
     if (!$username) {
-      $question = new Question(
-        sprintf('Nom utilisateur (prenom.nom) : ')
+      $users = $userRepository->findAll();
+      $names = [];
+      foreach ($users as $u) {
+        $names[] = $u->getUsername();
+      }
+      $question = new ChoiceQuestion(
+        sprintf('Nom utilisateur à modifier : '),
+        $names
       );
-      $question->setValidator(function ($answer) {
-        $regex = '/[a-z]+([-][a-z]+)?([-][a-z1-9]{1})?\.[a-z]+([-][a-z]+)?/';
-        if (!preg_match($regex, $answer)) {
-          throw new \RuntimeException(
-            'Format du nom utilisateur incorrect : prenom.nom'
-          );
-        }
-        return $answer;
-      });
+
       $username = $helper->ask($input, $output, $question);
     }
 
-    $io->note(sprintf('Utilisateur a créer : %s', $username));
+    // Vérification que l'utilisateur saisi existe
+    try {
+      $user = $userRepository->findOneByUsername($username);
+      if (!$user) {
+        throw new \RuntimeException(
+          sprintf('L\'utilisateur %s n\'existe pas', $username)
+        );
+      }
+    } catch (\RuntimeException $execption) {
+      return Command::FAILURE;
+    }
+
+    $io->note(sprintf('Utilisateur a modifier : %s', $username));
 
     // Demande du mot de passe utilisateur si non fournit en paramètre de la commande
     if (!$password) {
       $question = new Question(
-        sprintf('Mot de passe pour %s : ', $username)
+        sprintf('Mot de passe pour %s : [mot de passe actuel]', $username)
       );
       $question->setHidden(true);
       $question->setHiddenFallback(false);
       $question->setValidator(function ($answer) {
-        if (strlen($answer) < 5) {
+        if ($answer && strlen($answer) < 5) {
           throw new \RuntimeException(
             'Mot de passe trop court (min 5 caractères)'
           );
@@ -80,20 +95,24 @@ class UserCreateCommand extends Command
       });
       $password = $helper->ask($input, $output, $question);
 
-      $question = new Question(
-        sprintf('Confirmer le mot de passe pour %s : ', $username)
-      );
-      $question->setValidator(function ($answer) use ($password) {
-        if ($password !== $answer) {
-          throw new \RuntimeException(
-            'Les mots de passe ne correspondent pas'
-          );
-        }
-        return $answer;
-      });
-    }
+      if ($password) {
+        $question = new Question(
+          sprintf('Confirmer le mot de passe pour %s : ', $username)
+        );
+        $question->setValidator(function ($answer) use ($password) {
+          if ($password !== $answer) {
+            throw new \RuntimeException(
+              'Les mots de passe ne correspondent pas'
+            );
+          }
+          return $answer;
+        });
 
-    $io->note(sprintf('Mot de passe pour %s confirmé : %s', $username, str_repeat('*', strlen($password))));
+        $io->note(sprintf('Mot de passe pour %s modifié : %s', $username, str_repeat('*', strlen($password))));
+      } else {
+        $io->note(sprintf('Mot de passe pour %s inchangé', $username));
+      }
+    }
 
     // Demande du rôle ADMIN si non fournit en paramètre de la commande
     if (!$is_admin) {
@@ -104,21 +123,19 @@ class UserCreateCommand extends Command
     // Définition du rôle en fonction de l'option fournit en paramètre de la commande
     $role = $is_admin ? 'ROLE_ADMIN' : 'ROLE_USER';
 
-    // Création de l'utilisateur en base de donnée
-    $user = new User();
-
     // Hash du mot de passe
-    $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
-    $io->note(sprintf('Mot de passe hashé : %s', $hashedPassword));
+    if ($password) {
+      $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
+      $io->note(sprintf('Mot de passe hashé : %s', $hashedPassword));
+      $user->setPassword($hashedPassword);
+    }
 
     // Affectation des valeurs au nouvel utilisateur
-    $user->setUsername($username);
-    $user->setPassword($hashedPassword);
     $user->setRoles([$role]);
     $this->om->persist($user);
     $this->om->flush();
 
-    $io->success(sprintf('Utilisateur créé avec succès : %s (%s).', $username, $role));
+    $io->success(sprintf('Utilisateur modifié avec succès : %s (%s).', $username, $role));
 
     return Command::SUCCESS;
   }
