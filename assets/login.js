@@ -1,15 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { BrowserRouter as Router } from 'react-router-dom'
-import App from './components/App/App'
+import Login from './components/Login/Login'
 import reportWebVitals from './reportWebVitals'
 
 import './styles/global.scss'
 
 ReactDOM.render(
-  <Router>
-    <App />
-  </Router>,
+  <React.StrictMode>
+    <Login />
+  </React.StrictMode>,
   document.getElementById('root')
 )
 

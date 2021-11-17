@@ -1,4 +1,8 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
+parameters:
+    route_urls: 
+        login: '/login'
+        logout: '/logout'
 framework:
     secret: '%env(APP_SECRET)%'
     #csrf_protection: true

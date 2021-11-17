@@ -1,25 +1,23 @@
-import React from 'react'
-import logo from '../../images/logo.svg'
-import './App.css'
+import React, { useEffect, useState } from 'react'
+import { Route, Routes } from 'react-router-dom'
+import Home from '../Home/Home'
+import Login from '../Login/Login'
+
+import './App.scss'
 
 function App() {
+  let [routes, setRoutes] = useState('{}')
+
+  useEffect(() => {    
+    const rootElement = document.querySelector('#root')
+    setRoutes(rootElement.dataset.routes)
+  })
+  console.log(routes)
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path={JSON.parse(routes).login} element={<Login />} />
+      <Route path="/" element={<Home />} />
+    </Routes>
   )
 }
 
