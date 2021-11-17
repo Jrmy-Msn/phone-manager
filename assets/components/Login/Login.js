@@ -1,6 +1,5 @@
 import { Visibility, VisibilityOff } from '@mui/icons-material'
-import { Button, FormControl, FormHelperText, IconButton, Input, InputAdornment, InputLabel, OutlinedInput, TextField } from '@mui/material'
-import { Box } from '@mui/system'
+import { Box, Button, FormControl, FormHelperText, IconButton, Input, InputAdornment, InputLabel, OutlinedInput, TextField, Typography } from '@mui/material'
 import React, {useEffect, useState} from 'react'
 import HeaderBar from '../HeaderBar/HeaderBar'
 import './Login.scss'
@@ -34,19 +33,34 @@ function Login() {
   };
 
   return (
-    <div>
+    <Box sx={{height: '100vh', display: 'flex', flexDirection:'column'}}>
       <HeaderBar noActions/>
-      
       <Box 
-        component="form"
-        autoComplete="off"
-        method="post"
+        sx={{
+          display: 'flex', flexDirection:'column', justifyContent: 'center', 
+          height: '100vh'
+        }}
       >
-        <div>
-          <FormControl 
+        <Box
+          sx={{
+            minWidth: '60vw',
+            mx: 'auto', my: 2, p: 3, 
+            display: 'flex', flexDirection:'column', justifyContent: 'center',
+            boxShadow: 2
+          }} 
+          component="form"
+          autoComplete="off"
+          method="post"
+        >
+          <Typography
+            variant='h4'
+            align='left'
+            sx={{mb: 2, fontWeight: '500'}}
+          >Authentification</Typography>
+          <FormControl
+            sx={{my: 2}} 
             variant="outlined"
             required
-            fullWidth
           >
             <InputLabel htmlFor="login_username">Nom utilisateur</InputLabel>
             <OutlinedInput
@@ -60,12 +74,10 @@ function Login() {
             />
             <FormHelperText id="login_username_helper">Saisir votre prenom.nom</FormHelperText>
           </FormControl>
-        </div>
-        <div>
           <FormControl 
+            sx={{my: 2}} 
             variant="outlined"
             required
-            fullWidth
           >
             <InputLabel htmlFor="login_password">Mot de passe</InputLabel>
             <OutlinedInput
@@ -88,21 +100,21 @@ function Login() {
               }
             />
           </FormControl>
-        </div>
-        <div>
           <TextField
+            sx={{display: 'none'}} 
             name="_csrf_token"
             type="hidden"
             value={csrf}
           />
-          <Button 
+          <Button
+            sx={{my: 4, flexShrink: 1}} 
             variant="contained"
             type="submit"
-          >
-          Authentification</Button>
-        </div>
+          >S'authentifier</Button>
+        </Box>
       </Box>
-    </div>
+      
+    </Box>
   )
 }
 
