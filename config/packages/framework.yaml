@@ -3,6 +3,8 @@ parameters:
     route_urls: 
         login: '/login'
         logout: '/logout'
+        timone: '/timone'
+        donadieu: '/donadieu'
 framework:
     secret: '%env(APP_SECRET)%'
     #csrf_protection: true

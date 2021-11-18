@@ -17,12 +17,9 @@ import './HeaderBar.scss'
  * @param {Boolean} noActions - Masque les actions possible à droite de la barre d'en-tête 
  * @returns 
  */
-function HeaderBar({noActions}) {
-  let routes = {}
+function HeaderBar({auth = false, routes = {}, noActions = false}) {
 
   const [appName, setAppName] = useState('')
-  const [isAuth, setAuth] = useState(false)
-  const [isAdmin, setAdmin] = useState(false)
 
   const [moreMenuAnchorEl, setMoreMenuAnchorEl] = useState(null)
   const isMoreMenuOpen = Boolean(moreMenuAnchorEl)
@@ -39,9 +36,6 @@ function HeaderBar({noActions}) {
   useEffect(() => {
     const rootElement = document.querySelector('#root')
     setAppName(rootElement.dataset.appName)
-    setAuth(rootElement.dataset.auth !== undefined)
-    setAdmin(rootElement.dataset.admin !== undefined)
-    routes = JSON.parse(rootElement.dataset.routes)
   })
 
   const moreMenuId = 'more_menu';
@@ -87,7 +81,7 @@ function HeaderBar({noActions}) {
             (noActions) 
             ? ''
             : ( 
-              (!isAuth) 
+              (!auth) 
               ? <Button 
                   color="inherit" 
                   onClick={event => window.location.href = routes.login}

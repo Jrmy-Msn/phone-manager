@@ -1,10 +1,11 @@
 import { Visibility, VisibilityOff } from '@mui/icons-material'
-import { Box, Button, FormControl, FormHelperText, IconButton, Input, InputAdornment, InputLabel, OutlinedInput, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, FormControl, FormHelperText, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField, Typography } from '@mui/material'
 import React, {useEffect, useState} from 'react'
 import HeaderBar from '../HeaderBar/HeaderBar'
 import './Login.scss'
 
-function Login() {
+function Login({auth = false, admin = false}) {
+  const [errorMessage, setErrorMessage] = useState(undefined)
   const [lastUserName, setLastUsername] = useState('')
   const [csrf, setCsrf] = useState('')
   const [showPassword, setPasswordVisibility] = useState(false)
@@ -16,11 +17,11 @@ function Login() {
   useEffect(() => {
       const rootElement = document.querySelector('#root')
       setLastUsername(rootElement.dataset.loginLastUsername)
-      console.log(rootElement.dataset.loginError)
       setCsrf(rootElement.dataset.loginCsrf)
+      setErrorMessage(rootElement.dataset.loginError)
   })
 
-  const handleChange = (prop) => (event) => {
+  const handleLoginValuesChange = (prop) => (event) => {
     setLoginValues({ ...loginValues, [prop]: event.target.value })
   }
 
@@ -34,7 +35,7 @@ function Login() {
 
   return (
     <Box sx={{height: '100vh', display: 'flex', flexDirection:'column'}}>
-      <HeaderBar noActions/>
+      <HeaderBar auth={auth} admin={admin} noActions />
       <Box 
         sx={{
           display: 'flex', flexDirection:'column', justifyContent: 'center', 
@@ -57,6 +58,9 @@ function Login() {
             align='left'
             sx={{mb: 2, fontWeight: '500'}}
           >Authentification</Typography>
+          { 
+            (errorMessage) ? <Alert severity="error">{errorMessage}</Alert> : ''
+          }
           <FormControl
             sx={{my: 2}} 
             variant="outlined"
@@ -68,8 +72,8 @@ function Login() {
               name="username"
               autoFocus
               value={loginValues.username || lastUserName} 
-              onChange={handleChange('username')} 
-              label="Nom utilisateur"
+              onChange={handleLoginValuesChange('username')} 
+              label="Nom d'utilisateur"
               aria-describedby="login_username_helper"
             />
             <FormHelperText id="login_username_helper">Saisir votre prenom.nom</FormHelperText>
@@ -85,7 +89,7 @@ function Login() {
               name="password"
               type={showPassword ? 'text' : 'password'}
               value={loginValues.password}
-              onChange={handleChange('password')}
+              onChange={handleLoginValuesChange('password')}
               label="Mot de passe"
               endAdornment={
                 <InputAdornment position="end">
