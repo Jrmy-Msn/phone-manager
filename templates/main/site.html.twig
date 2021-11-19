@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block dataset %}
+
+{# Listes des numéros de téléphones #}
+data-site-phones="{{ phones|json_encode }}"
+
+{# Eventuelles erreurs #}
+{% if error is defined and error %}
+  data-site-error="{{ error.messageKey|trans(error.messageData) }}"
+{% endif %}
+
+{% endblock %}
