@@ -46,7 +46,7 @@ class Phone
   /**
    * @ORM\Column(type="integer", nullable=true)
    */
-  private $clusterIndex;
+  private $clusterCard;
 
   /**
    * @ORM\Column(type="string", length=255, nullable=true)
@@ -81,12 +81,12 @@ class Phone
   /**
    * @ORM\Column(type="string", length=255, nullable=true)
    */
-  private $roomSwitch;
+  private $switch;
 
   /**
    * @ORM\Column(type="string", length=255, nullable=true)
    */
-  private $switchCore;
+  private $core;
 
   /**
    * @ORM\Column(type="string", length=255, nullable=true)
@@ -163,14 +163,14 @@ class Phone
     return $this;
   }
 
-  public function getClusterIndex(): ?int
+  public function getClusterCard(): ?int
   {
-    return $this->clusterIndex;
+    return $this->clusterCard;
   }
 
-  public function setClusterIndex(?int $clusterIndex): self
+  public function setClusterCard(?int $clusterCard): self
   {
-    $this->clusterIndex = $clusterIndex;
+    $this->clusterCard = $clusterCard;
 
     return $this;
   }
@@ -283,10 +283,10 @@ class Phone
     return $this;
   }
 
-  public function clusterFactory(int $cluster, int $index, int $channel)
+  public function clusterFactory(int $cluster, int $card, int $channel)
   {
     $this->cluster = $cluster;
-    $this->clusterIndex = $index;
+    $this->clusterCard = $card;
     $this->clusterChannel = $channel;
   }
 
@@ -302,5 +302,27 @@ class Phone
     $this->room = $room;
     $this->switch = $switch;
     $this->core = $core;
+  }
+
+  public function asArray()
+  {
+    return [
+      'id' => $this->getId(),
+      'assignedTo' => $this->getAssignedTo(),
+      'number' => $this->getNumber(),
+      'reserved' => $this->getReserved(),
+      'cluster' => $this->getCluster(),
+      'clusterCard' => $this->getClusterCard(),
+      'clusterChannel' => $this->getClusterChannel(),
+      'distribution' => $this->getDistribution(),
+      'distributionCard' => $this->getDistributionCard(),
+      'distributionChannel' => $this->getDistributionChannel(),
+      'type' => $this->getType(),
+      'location' => $this->getLocation(),
+      'room' => $this->getRoom(),
+      'switch' => $this->getSwitch(),
+      'core' => $this->getCore(),
+      'socket' => $this->getSocket(),
+    ];
   }
 }

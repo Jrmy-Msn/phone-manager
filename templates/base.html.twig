@@ -17,6 +17,7 @@
       {% endblock %}
     </head>
     <body>
+        {% block test %}{% endblock %}
         {% block body %}
           <div id="root" 
             {% if is_granted('IS_AUTHENTICATED_FULLY') %} data-auth="" {% endif %} 

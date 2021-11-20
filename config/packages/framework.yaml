@@ -4,6 +4,7 @@ parameters:
         login: '/login'
         logout: '/logout'
         timone: '/timone'
+        timone_list: '/timone/list'
         donadieu: '/donadieu'
 framework:
     secret: '%env(APP_SECRET)%'
