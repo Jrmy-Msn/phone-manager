@@ -3,15 +3,30 @@
 namespace App\Controller;
 
 use App\Entity\Phone;
+use App\Form\PhoneType;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\Form\Form;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class MainController extends AbstractController
 {
+
+  private $translator;
+
+  public function __construct(TranslatorInterface $translator)
+  {
+    $this->translator = $translator;
+  }
+
   /**
    * @Route("/", name="app_home")
    * @Template
@@ -28,7 +43,7 @@ class MainController extends AbstractController
    */
   public function timone(EntityManagerInterface $om): array
   {
-   return [];
+    return [];
   }
 
   /**
@@ -37,16 +52,70 @@ class MainController extends AbstractController
    */
   public function timoneList(EntityManagerInterface $om): JsonResponse
   {
-    $repo = $om->getRepository(Phone::class);
-    $phones = $repo->findAll();
+    try {
+      $repo = $om->getRepository(Phone::class);
+      $phones = $repo->findAll();
 
-    $phonesAsArray = [];
-    foreach ($phones as $phone) {
-      $phonesAsArray[] = $phone->asArray();
+      $phonesAsArray = [];
+      foreach ($phones as $phone) {
+        $phonesAsArray[] = $phone->asArray();
+      }
+    } catch (Exception $exception) {
+      return new JsonResponse([
+        'message' => 'Erreur lors de la récupération de la liste des postes'
+      ], 400);
     }
 
     return new JsonResponse($phonesAsArray);
   }
 
+  /**
+   * @Route("/timone/update/{id}", 
+   *    methods={"POST"}, 
+   *    name="app_timone_update",
+   *    requirements={"id"="\d+"})
+   * @IsGranted("IS_AUTHENTICATED_FULLY")
+   */
+  public function timoneUpdate(Phone $phone, Request $request, EntityManagerInterface $om): ?Response
+  {
+    $form = $this->createForm(PhoneType::class, $phone);
 
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+      try {
+        $om->persist($phone);
+        $om->flush();
+      } catch (Exception $exception) {
+        return new JsonResponse([
+          'message' => 'Erreur lors de la mise à jour du poste ' . $phone
+        ], 400);
+      }
+      return new JsonResponse($phone->asArray());
+    }
+
+    $errors = $this->getErrorMessages(($form));
+    return new JsonResponse($errors, 400);
+  }
+
+  /**
+   * Récupère les messages d'erreur liés au formulaire "PhoneType"
+   * Les messages sont fournis sous forme de JSON
+   */
+  public function getErrorMessages(Form $form): array
+  {
+    $errors = [];
+
+    foreach ($form->getErrors() as $key => $error) {
+      $errors[] = $this->translator->trans($error->getMessage());
+    }
+
+    foreach ($form->all() as $child) {
+      if (!$child->isValid()) {
+        $errors[$child->getName()] = $this->getErrorMessages($child);
+      }
+    }
+
+    return $errors;
+  }
 }

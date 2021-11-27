@@ -74,28 +74,23 @@ class Phone
   private $location;
 
   /**
-   * @ORM\Column(type="string", length=255, nullable=true)
+   * @ORM\OneToOne(targetEntity=Connector::class, inversedBy="phone", cascade={"persist", "remove"})
    */
-  private $room;
-
-  /**
-   * @ORM\Column(type="string", length=255, nullable=true)
-   */
-  private $switch;
-
-  /**
-   * @ORM\Column(type="string", length=255, nullable=true)
-   */
-  private $core;
+  private $connector;
 
   /**
    * @ORM\Column(type="string", length=255, nullable=true)
    */
   private $socket;
 
-  public function __construct(int $num)
+  public function __construct(?int $num = null)
   {
-    $this->number = $num;
+    if (intval($num)) $this->number = $num;
+  }
+
+  public function __toString(): string
+  {
+    return 'N° ' . $this->number;
   }
 
   public function getId(): ?int
@@ -235,38 +230,14 @@ class Phone
     return $this;
   }
 
-  public function getRoom(): ?string
+  public function getConnector(): ?Connector
   {
-    return $this->room;
+    return $this->connector;
   }
 
-  public function setRoom(?string $room): self
+  public function setConnector(?Connector $connector): self
   {
-    $this->room = $room;
-
-    return $this;
-  }
-
-  public function getSwitch(): ?string
-  {
-    return $this->switch;
-  }
-
-  public function setSwitch(?string $switch): self
-  {
-    $this->switch = $switch;
-
-    return $this;
-  }
-
-  public function getCore(): ?string
-  {
-    return $this->core;
-  }
-
-  public function setCore(?string $core): self
-  {
-    $this->core = $core;
+    $this->connector = $connector;
 
     return $this;
   }
@@ -297,11 +268,10 @@ class Phone
     $this->distributionChannel = $channel;
   }
 
-  public function roomFactory(string $room, string $switch, string $core)
+  public function connectorFactory(HeadBand $headBand, int $number)
   {
-    $this->room = $room;
-    $this->switch = $switch;
-    $this->core = $core;
+    $connector = $headBand->getConnector($number);
+    $this->setConnector($connector);
   }
 
   public function asArray()
@@ -319,9 +289,10 @@ class Phone
       'distributionChannel' => $this->getDistributionChannel(),
       'type' => $this->getType(),
       'location' => $this->getLocation(),
-      'room' => $this->getRoom(),
-      'switch' => $this->getSwitch(),
-      'core' => $this->getCore(),
+      'connector' =>
+      $this->getConnector()
+        ? $this->getConnector()->asArray()
+        : null,
       'socket' => $this->getSocket(),
     ];
   }
