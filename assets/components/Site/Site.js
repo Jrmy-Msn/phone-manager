@@ -1,14 +1,16 @@
 import axios from 'axios'
-import {CardActions, CardContent, Card, Alert, Box, Backdrop, Button, FormControl, FormHelperText, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField, Typography, LinearProgress } from '@mui/material'
+import {CardActions, CardContent, Card, Alert, Box, Backdrop, Button, FormControl, FormHelperText, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField, Typography, LinearProgress, Snackbar } from '@mui/material'
 import PhoneDisabledIcon from '@mui/icons-material/PhoneDisabled'
-import { DataGrid, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport, GridOverlay } from '@mui/x-data-grid'
+import { DataGrid, GridToolbar, GridOverlay } from '@mui/x-data-grid'
 import React, {useEffect, useState} from 'react'
 import HeaderBar from '../HeaderBar/HeaderBar'
+import {GRID_FR_LOCALE_TEXT} from './GridLocaleText'
 import './Site.scss'
 
 function Site({label, auth = false, admin = false, routes = {}}) {
   const [phones, setPhones] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [loading, setLoadState] = useState(true)
 
   /**
@@ -70,6 +72,7 @@ function Site({label, auth = false, admin = false, routes = {}}) {
       const {data} = await axios.post(`${routes.timone_update}/${event.row.id}`, formData)
       handlePhoneChange(data.id, data)
       setPhones(phones.map(v => v.id === data.id ? data : v))
+      setSuccessMessage(`N° ${data.number} mis à jour`)
     } catch (error) {
       if (error.response && error.response.data) handlePhoneChangeError(error.response.data)
       handlePhoneChange(event.id, event.row)
@@ -173,17 +176,6 @@ function Site({label, auth = false, admin = false, routes = {}}) {
     )
   }
 
-  function CustomToolbar() {
-    return (
-      <GridToolbarContainer>
-        <GridToolbarColumnsButton />
-        <GridToolbarFilterButton />
-        <GridToolbarDensitySelector />
-        <GridToolbarExport />
-      </GridToolbarContainer>
-    );
-  }
-
   function CustomNoRowsOverlay() {
     return (
       <GridOverlay sx={{display: 'flex', flexDirection: 'column'}}>
@@ -217,6 +209,22 @@ function Site({label, auth = false, admin = false, routes = {}}) {
         { 
           (errorMessage) ? <Alert severity="error">{errorMessage}</Alert> : ''
         }
+        {
+          (successMessage) 
+          ? (
+            <Snackbar 
+              open
+              anchorOrigin={{horizontal: 'right', vertical:'bottom'}}
+              autoHideDuration={5000} 
+              onClose={(event, reason) => setSuccessMessage('')}
+            >
+              <Alert severity="success" sx={{}}>
+               {successMessage}
+              </Alert>
+            </Snackbar>
+          )
+          : ''
+        }
         <Box
           sx={{
             display: 'flex',
@@ -230,9 +238,10 @@ function Site({label, auth = false, admin = false, routes = {}}) {
               disableSelectionOnClick
               autoHeight
               onCellEditCommit={updatePhone}
+              localeText={GRID_FR_LOCALE_TEXT}
               components={{
                 LoadingOverlay: CustomLoadingOverlay,
-                Toolbar: CustomToolbar,
+                Toolbar: GridToolbar,
                 NoRowsOverlay: CustomNoRowsOverlay,
               }}
             />

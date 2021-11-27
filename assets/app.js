@@ -1,14 +1,27 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter as Router } from 'react-router-dom'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { frFR } from '@mui/material/locale'
 import App from './components/App/App'
 import reportWebVitals from './reportWebVitals'
 
 import './styles/global.scss'
 
+const theme = createTheme(
+  {
+    palette: {
+      // primary: { main: '#ff0000' },
+    },
+  },
+  frFR,
+)
+
 ReactDOM.render(
   <Router>
-    <App />
+    <ThemeProvider theme={theme}>
+      <App />
+    </ThemeProvider>
   </Router>,
   document.getElementById('root')
 )
