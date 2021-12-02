@@ -47,7 +47,30 @@ class MainController extends AbstractController
   }
 
   /**
-   * @Route("/timone/list", name="app_timone_list")
+   * @Route("/timone/distribution/list", name="app_timone_distribution_list")
+   * @IsGranted("IS_AUTHENTICATED_FULLY")
+   */
+  public function timoneDistributionList(EntityManagerInterface $om): JsonResponse
+  {
+    try {
+      $repo = $om->getRepository(Phone::class);
+      $phones = $repo->findAll();
+
+      $phonesAsArray = [];
+      foreach ($phones as $phone) {
+        $phonesAsArray[] = $phone->asArray();
+      }
+    } catch (Exception $exception) {
+      return new JsonResponse([
+        'message' => 'Erreur lors de la récupération de la liste des postes'
+      ], 400);
+    }
+
+    return new JsonResponse($phonesAsArray);
+  }
+
+  /**
+   * @Route("/timone/phone/list", name="app_timone_phone_list")
    * @IsGranted("IS_AUTHENTICATED_FULLY")
    */
   public function timoneList(EntityManagerInterface $om): JsonResponse
@@ -70,9 +93,9 @@ class MainController extends AbstractController
   }
 
   /**
-   * @Route("/timone/update/{id}", 
+   * @Route("/timone/phone/update/{id}", 
    *    methods={"POST"}, 
-   *    name="app_timone_update",
+   *    name="app_timone_phone_update",
    *    requirements={"id"="\d+"})
    * @IsGranted("IS_AUTHENTICATED_FULLY")
    */
