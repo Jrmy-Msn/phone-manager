@@ -111,7 +111,7 @@ class HeadBand
     return $this;
   }
 
-  public function connector(int $number) 
+  public function connector(int $number)
   {
     $connector = new Connector($number);
     $connector->setHeadBand($this);
@@ -120,13 +120,17 @@ class HeadBand
 
   public function asArray()
   {
-    return [
+    $connectorsAsArray = [];
+    foreach ($this->connectors as $connector) {
+      $connectorsAsArray[] = $connector->asArray();
+    }
+
+    $array = [
       'id' => $this->getId(),
       'label' => $this->getLabel(),
-      'distributionRoom' => 
-        $this->getDistributionRoom() 
-        ? $this->getDistributionRoom()->asArray() 
-        : null,
+      'connectors' => $connectorsAsArray
     ];
+
+    return $array;
   }
 }

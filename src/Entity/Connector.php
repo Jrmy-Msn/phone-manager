@@ -94,10 +94,6 @@ class Connector
     return [
       'id' => $this->getId(),
       'number' => $this->getNumber(),
-      'headBand' =>
-      $this->getHeadBand()
-        ? $this->getHeadBand()->asArray()
-        : null,
     ];
   }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\DistributionRoom;
 use App\Entity\Phone;
 use App\Form\PhoneType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,6 +39,8 @@ class MainController extends AbstractController
 
   /**
    * @Route("/timone", name="app_timone")
+   * @Route("/timone/phone", name="app_timone_phone")
+   * @Route("/timone/distribution", name="app_timone_distribution")
    * @IsGranted("IS_AUTHENTICATED_FULLY")
    * @Template
    */
@@ -53,20 +56,20 @@ class MainController extends AbstractController
   public function timoneDistributionList(EntityManagerInterface $om): JsonResponse
   {
     try {
-      $repo = $om->getRepository(Phone::class);
-      $phones = $repo->findAll();
+      $repo = $om->getRepository(DistributionRoom::class);
+      $distributions = $repo->findAll();
 
-      $phonesAsArray = [];
-      foreach ($phones as $phone) {
-        $phonesAsArray[] = $phone->asArray();
+      $distributionsAsArray = [];
+      foreach ($distributions as $distrib) {
+        $distributionsAsArray[] = $distrib->asArray();
       }
     } catch (Exception $exception) {
       return new JsonResponse([
-        'message' => 'Erreur lors de la récupération de la liste des postes'
+        'message' => 'Erreur lors de la récupération de la liste des salles de répartiteur'
       ], 400);
     }
 
-    return new JsonResponse($phonesAsArray);
+    return new JsonResponse($distributionsAsArray);
   }
 
   /**

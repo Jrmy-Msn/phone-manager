@@ -4,9 +4,11 @@ parameters:
         login: '/login'
         logout: '/logout'
         timone: '/timone'
+        timone_phone: '/timone/phone'
+        timone_distribution: '/timone/distribution'
         timone_phone_list: '/timone/phone/list'
         timone_phone_update: '/timone/phone/update'
-        timone_distribution_list: '/timone/distribution/update'
+        timone_distribution_list: '/timone/distribution/list'
         donadieu: '/donadieu'
 framework:
     secret: '%env(APP_SECRET)%'

@@ -95,9 +95,15 @@ class DistributionRoom
 
   public function asArray()
   {
+    $headBandsAsArray = [];
+    foreach ($this->headBands as $headBand) {
+      $headBandsAsArray[] = $headBand->asArray();
+    }
+
     return [
       'id' => $this->getId(),
       'label' => $this->getLabel(),
+      'headBands' => $headBandsAsArray
     ];
   }
 }
