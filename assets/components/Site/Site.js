@@ -6,20 +6,37 @@ import {
   LinearProgress,
   Snackbar,
   Tab,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Paper,
 } from "@mui/material"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import PhoneDisabledIcon from "@mui/icons-material/PhoneDisabled"
+import DnsIcon from "@mui/icons-material/Dns"
+import PhoneIcon from "@mui/icons-material/Phone"
 import { DataGrid, GridToolbar, GridOverlay } from "@mui/x-data-grid"
 import React, { useEffect, useState } from "react"
+import { NavLink } from "react-router-dom"
 import HeaderBar from "../HeaderBar/HeaderBar"
+import { DistributionRow } from "./DistributionRoom"
 import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
 import "./Site.scss"
-import { Dns, Phone } from "@mui/icons-material"
 
-function Site({ label, auth = false, admin = false, routes = {} }) {
+function Site({
+  label,
+  auth = false,
+  admin = false,
+  routes = {},
+  activeTab = "phone",
+}) {
   const [phones, setPhones] = useState([])
   const [distributions, setDistributions] = useState([])
-  const [tab, setTab] = useState("1")
+  const [distributionHeadBandOpen, setDistributionHeadBandOpen] = useState()
+  const [tab, setTab] = useState(activeTab)
   const [grid, setGrid] = useState({
     columns: [],
     rows: [],
@@ -33,6 +50,15 @@ function Site({ label, auth = false, admin = false, routes = {} }) {
    */
   const handleTabChange = (event, newTab) => {
     setTab(newTab)
+  }
+
+  /**
+   * Ouvre le panneau du bandeau cliqué et ferme celui qui était ouvert
+   * Si celui ouvert est le bandeau cliqué, c'est celui-ci qui se ferme,
+   * ce qui a pour action d'avoir tous les bandeaux fermés
+   */
+  const handleDistributionHeadBandOpenClick = (headBandId) => {
+    setDistributionHeadBandOpen(headBandId === distributionHeadBandOpen ? undefined : headBandId)
   }
 
   /**
@@ -137,7 +163,7 @@ function Site({ label, auth = false, admin = false, routes = {} }) {
   const constructGrid = () => {
     let columns, rows
     switch (tab) {
-      case "1":
+      case "phone":
         columns = [
           {
             field: "number",
@@ -215,7 +241,9 @@ function Site({ label, auth = false, admin = false, routes = {} }) {
                 }
               })
         break
-      case "2":
+      case "distribution":
+        columns = []
+        rows = []
         break
     }
     setGrid({ columns, rows })
@@ -227,13 +255,16 @@ function Site({ label, auth = false, admin = false, routes = {} }) {
     ;(async function fetchData() {
       await getPhones()
     })()
+    ;(async function fetchData() {
+      await getDistributions()
+    })()
   }, [])
 
   // --> A chaque fois que la liste des postes change
   // Mise à jour du tableau
   useEffect(() => {
     constructGrid()
-  }, [phones])
+  }, [tab, phones, distributions])
 
   const CustomLoadingOverlay = () => {
     return (
@@ -263,7 +294,7 @@ function Site({ label, auth = false, admin = false, routes = {} }) {
         flexDirection: "column",
       }}
     >
-      <HeaderBar auth={auth} admin={admin} />
+      <HeaderBar auth={auth} admin={admin} routes={routes}/>
       <Box
         sx={{
           display: "flex",
@@ -298,20 +329,24 @@ function Site({ label, auth = false, admin = false, routes = {} }) {
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList onChange={handleTabChange}>
               <Tab
-                icon={<Phone />}
+                component={NavLink}
+                to={routes.timone_phone}
+                icon={<PhoneIcon />}
                 iconPosition="start"
                 label="Les postes"
-                value="1"
+                value="phone"
               />
               <Tab
-                icon={<Dns />}
+                component={NavLink}
+                to={routes.timone_distribution}
+                icon={<DnsIcon />}
                 iconPosition="start"
                 label="Les Redistributeurs"
-                value="2"
+                value="distribution"
               />
             </TabList>
           </Box>
-          <TabPanel sx={{ px: 0 }} value="1">
+          <TabPanel sx={{ px: 0 }} value="phone">
             <Box
               sx={{
                 display: "flex",
@@ -335,7 +370,33 @@ function Site({ label, auth = false, admin = false, routes = {} }) {
               </div>
             </Box>
           </TabPanel>
-          <TabPanel sx={{ px: 0 }} value="2"></TabPanel>
+          <TabPanel sx={{ px: 0 }} value="distribution">
+            <Box
+              sx={{
+                display: "flex",
+              }}
+            >
+              <div style={{ flexGrow: 1 }}>
+                <TableContainer component={Paper}>
+                  <Table aria-label="collapsible table">
+                    <TableBody>
+                      {distributions.map((distrib) =>
+                        distrib.headBands.map((headBand) => (
+                          <DistributionRow
+                            key={`${distrib.id}_${headBand.id}`}
+                            label={distrib.label}
+                            headBand={headBand}
+                            open={distributionHeadBandOpen === headBand.id}
+                            onOpenCLick={handleDistributionHeadBandOpenClick}
+                          />
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </div>
+            </Box>
+          </TabPanel>
         </TabContext>
       </Box>
     </Box>

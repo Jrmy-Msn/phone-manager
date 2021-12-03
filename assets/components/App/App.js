@@ -20,29 +20,66 @@ function App() {
 
   return (
     <Routes>
-      <Route 
-        path={JSON.parse(routes_url).login} 
+      <Route
+        path={JSON.parse(routes_url).login}
         element={
-          <Login auth={isAuth} admin={isAdmin} routes={JSON.parse(routes_url)}/>
-        } 
+          <Login
+            auth={isAuth}
+            admin={isAdmin}
+            routes={JSON.parse(routes_url)}
+          />
+        }
       />
-      <Route 
-        path={JSON.parse(routes_url).timone} 
+      <Route
+        path={JSON.parse(routes_url).timone_phone}
         element={
-          <Site label='La Timone' auth={isAuth} admin={isAdmin} routes={JSON.parse(routes_url)}/>
-        } 
+          <Site
+            label="La Timone"
+            auth={isAuth}
+            admin={isAdmin}
+            routes={JSON.parse(routes_url)}
+          />
+        }
       />
-      <Route 
-        path={JSON.parse(routes_url).donadieu} 
+      <Route
+        path={JSON.parse(routes_url).timone_distribution}
         element={
-          <Site label='Donadieu' auth={isAuth} admin={isAdmin} routes={JSON.parse(routes_url)}/>
-        } 
+          <Site
+            label="La Timone"
+            auth={isAuth}
+            admin={isAdmin}
+            activeTab={"distribution"}
+            routes={JSON.parse(routes_url)}
+          />
+        }
       />
-      <Route 
-        path="/" 
+      <Route
+        path={JSON.parse(routes_url).timone}
         element={
-          <Home auth={isAuth} admin={isAdmin} routes={JSON.parse(routes_url)}/>
-        } 
+          <Site
+            label="La Timone"
+            auth={isAuth}
+            admin={isAdmin}
+            routes={JSON.parse(routes_url)}
+          />
+        }
+      />
+      <Route
+        path={JSON.parse(routes_url).donadieu}
+        element={
+          <Site
+            label="Donadieu"
+            auth={isAuth}
+            admin={isAdmin}
+            routes={JSON.parse(routes_url)}
+          />
+        }
+      />
+      <Route
+        path="/"
+        element={
+          <Home auth={isAuth} admin={isAdmin} routes={JSON.parse(routes_url)} />
+        }
       />
     </Routes>
   )

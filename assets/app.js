@@ -1,12 +1,12 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import { BrowserRouter as Router } from 'react-router-dom'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { frFR } from '@mui/material/locale'
-import App from './components/App/App'
-import reportWebVitals from './reportWebVitals'
+import React from "react"
+import ReactDOM from "react-dom"
+import { BrowserRouter as Router } from "react-router-dom"
+import { createTheme, ThemeProvider } from "@mui/material/styles"
+import { frFR } from "@mui/material/locale"
+import App from "./components/App/App"
+import reportWebVitals from "./reportWebVitals"
 
-import './styles/global.scss'
+import "./styles/global.scss"
 
 const theme = createTheme(
   {
@@ -14,7 +14,7 @@ const theme = createTheme(
       // primary: { main: '#ff0000' },
     },
   },
-  frFR,
+  frFR
 )
 
 ReactDOM.render(
@@ -23,7 +23,7 @@ ReactDOM.render(
       <App />
     </ThemeProvider>
   </Router>,
-  document.getElementById('root')
+  document.getElementById("root")
 )
 
 // If you want to start measuring performance in your app, pass a function
