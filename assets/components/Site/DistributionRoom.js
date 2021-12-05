@@ -16,13 +16,22 @@ import { DataGrid } from "@mui/x-data-grid"
 import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
 import { Box } from "@mui/system"
 
-export function DistributionRow({ label, headBand, open, onOpenCLick }) {
-
+export function DistributionRow({
+  distribution,
+  headBand,
+  grid,
+  open,
+  onOpenCLick,
+  onCellEditCommit,
+}) {
   return (
     <React.Fragment>
       <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
         <TableCell>
-          <IconButton size="small" onClick={() => onOpenCLick(headBand.id)}>
+          <IconButton
+            size="small"
+            onClick={() => onOpenCLick(distribution.id, headBand.id)}
+          >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
@@ -33,7 +42,7 @@ export function DistributionRow({ label, headBand, open, onOpenCLick }) {
             gutterBottom
             component="span"
           >
-            {label} &mdash; {headBand.label}
+            {distribution.label} &mdash; {headBand.label}
           </Typography>
         </TableCell>
       </TableRow>
@@ -41,19 +50,24 @@ export function DistributionRow({ label, headBand, open, onOpenCLick }) {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
-              {/* <DataGrid
-              rows={grid.rows}
-              columns={grid.columns}
-              disableSelectionOnClick
-              autoHeight
-              // onCellEditCommit={}
-              localeText={GRID_FR_LOCALE_TEXT}
-              // components={{
-              //   LoadingOverlay: CustomLoadingOverlay,
-              //   Toolbar: GridToolbar,
-              //   NoRowsOverlay: CustomNoRowsOverlay,
-              // }}
-            /> */}
+              <DataGrid
+                rows={grid.rows || []}
+                columns={grid.columns || []}
+                disableSelectionOnClick
+                disableColumnMenu
+                disableColumnSelector
+                autoHeight
+                hideFooter
+                onCellEditCommit={(event) => onCellEditCommit(event)}
+                localeText={GRID_FR_LOCALE_TEXT}
+                components={
+                  {
+                    //   LoadingOverlay: CustomLoadingOverlay,
+                    //   Toolbar: GridToolbar,
+                    //   NoRowsOverlay: CustomNoRowsOverlay,
+                  }
+                }
+              />
             </Box>
           </Collapse>
         </TableCell>

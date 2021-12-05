@@ -13,7 +13,11 @@ import {
   TableRow,
   TableCell,
   Paper,
+  Autocomplete,
+  TextField,
+  InputAdornment,
 } from "@mui/material"
+import { createFilterOptions } from "@mui/material/Autocomplete"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import PhoneDisabledIcon from "@mui/icons-material/PhoneDisabled"
 import DnsIcon from "@mui/icons-material/Dns"
@@ -24,6 +28,7 @@ import { NavLink } from "react-router-dom"
 import HeaderBar from "../HeaderBar/HeaderBar"
 import { DistributionRow } from "./DistributionRoom"
 import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
+import { PHONE_COLUMNS_DESCRIPTION } from "./PhoneColumnsDescription"
 import "./Site.scss"
 
 function Site({
@@ -57,8 +62,19 @@ function Site({
    * Si celui ouvert est le bandeau cliqué, c'est celui-ci qui se ferme,
    * ce qui a pour action d'avoir tous les bandeaux fermés
    */
-  const handleDistributionHeadBandOpenClick = (headBandId) => {
-    setDistributionHeadBandOpen(headBandId === distributionHeadBandOpen ? undefined : headBandId)
+  const handleDistributionHeadBandOpenClick = (distributionId, headBandId) => {
+    if (
+      distributionHeadBandOpen &&
+      headBandId === distributionHeadBandOpen.headBandId
+    ) {
+      setDistributionHeadBandOpen(undefined)
+    } else {
+      setDistributionHeadBandOpen({ distributionId, headBandId })
+    }
+  }
+
+  const handleDistributionEditCommit = (event) => {
+    console.log(event)
   }
 
   /**
@@ -161,72 +177,13 @@ function Site({
    * Construit la grille de donnée en fonction de celle que l'on souhaite afficher (onglet...)
    */
   const constructGrid = () => {
-    let columns, rows
+    let columns = [],
+      rows = []
+
     switch (tab) {
       case "phone":
-        columns = [
-          {
-            field: "number",
-            sortable: true,
-            type: "unmber",
-            headerName: "N° de poste",
-            width: 120,
-          },
-          {
-            field: "reserved",
-            editable: true,
-            type: "boolean",
-            headerName: "Réservé ?",
-            width: 100,
-          },
-          {
-            field: "cluster",
-            editable: true,
-            filterable: false,
-            type: "number",
-            headerName: "Grappe",
-            width: 80,
-          },
-          {
-            field: "clusterCard",
-            editable: true,
-            filterable: false,
-            type: "number",
-            headerName: "G. Carte",
-            width: 80,
-          },
-          {
-            field: "clusterChannel",
-            editable: true,
-            filterable: false,
-            type: "number",
-            headerName: "G. Voie",
-            width: 80,
-          },
-          {
-            field: "distribution",
-            editable: true,
-            filterable: false,
-            headerName: "Distribution",
-            width: 80,
-          },
-          {
-            field: "distributionCard",
-            editable: true,
-            filterable: false,
-            type: "number",
-            headerName: "D. Carte",
-            width: 80,
-          },
-          {
-            field: "distributionChannel",
-            editable: true,
-            filterable: false,
-            type: "number",
-            headerName: "D. Voie",
-            width: 80,
-          },
-        ]
+        columns = PHONE_COLUMNS_DESCRIPTION
+
         rows =
           phones.length === 0
             ? []
@@ -234,6 +191,9 @@ function Site({
                 return {
                   id: phone.id,
                   number: phone.number,
+                  type: phone.type,
+                  assignedTo: phone.assignedTo,
+                  location: phone.location,
                   cluster: phone.cluster,
                   clusterCard: phone.clusterCard,
                   clusterChannel: phone.clusterChannel,
@@ -242,8 +202,82 @@ function Site({
               })
         break
       case "distribution":
-        columns = []
-        rows = []
+        if (!distributionHeadBandOpen) return
+        const distribution = distributions.find(
+          (distribution) =>
+            distribution.id === distributionHeadBandOpen.distributionId
+        )
+
+        if (!distribution) return
+
+        const headBand = distribution.headBands.find(
+          (headBand) => headBand.id === distributionHeadBandOpen.headBandId
+        )
+
+        if (!headBand) return
+
+        columns = headBand.connectors.map((connector) => {
+          return {
+            field: String(connector.number),
+            type: "string",
+            editable: true,
+            filterable: false,
+            sortable: false,
+            headerAlign: "center",
+            renderCell: (params) => {
+              return (
+                <span>
+                  <strong>{params.value ? params.value.type[0] : ""}.</strong>
+                  {params.value ? params.value.number : ""}
+                </span>
+              )
+            },
+            renderEditCell: (params) => {
+              return (
+                <Autocomplete
+                  fullWidth
+                  size="small"
+                  defaultValue={params.value}
+                  noOptionsText="Aucun n°"
+                  options={phones}
+                  getOptionLabel={(option) => `${option.number}`}
+                  filterOptions={(options, state) => {
+                    return options.filter((option) =>
+                      `${option.type[0]}.${option.number}`.includes(
+                        state.inputValue
+                      )
+                    )
+                  }}
+                  renderOption={(props, option) => (
+                    <Box component="span" {...props}>
+                      <strong>{option.type[0]}</strong>.{option.number}
+                    </Box>
+                  )}
+                  renderInput={(props) => (
+                    <TextField {...props} label="N°" variant="standard" />
+                  )}
+                />
+              )
+            },
+            preProcessEditCellProps: (params) => {
+              const isValid =
+                params.props.value && params.props.value.number >= 1000
+              return { ...params.props, error: !isValid }
+            },
+            align: "center",
+            width: 120,
+          }
+        })
+
+        const row = {}
+        headBand.connectors.forEach((connector) => {
+          const phone = phones.find(
+            (phone) => phone.connector && phone.connector.id === connector.id
+          )
+          row.id = connector.id
+          row[connector.number] = phone ? phone : null
+        })
+        rows = [row]
         break
     }
     setGrid({ columns, rows })
@@ -264,7 +298,7 @@ function Site({
   // Mise à jour du tableau
   useEffect(() => {
     constructGrid()
-  }, [tab, phones, distributions])
+  }, [tab, distributionHeadBandOpen, phones, distributions])
 
   const CustomLoadingOverlay = () => {
     return (
@@ -294,7 +328,7 @@ function Site({
         flexDirection: "column",
       }}
     >
-      <HeaderBar auth={auth} admin={admin} routes={routes}/>
+      <HeaderBar auth={auth} admin={admin} routes={routes} />
       <Box
         sx={{
           display: "flex",
@@ -384,10 +418,16 @@ function Site({
                         distrib.headBands.map((headBand) => (
                           <DistributionRow
                             key={`${distrib.id}_${headBand.id}`}
-                            label={distrib.label}
+                            distribution={distrib}
                             headBand={headBand}
-                            open={distributionHeadBandOpen === headBand.id}
+                            grid={grid}
+                            open={
+                              distributionHeadBandOpen &&
+                              distributionHeadBandOpen.headBandId ===
+                                headBand.id
+                            }
                             onOpenCLick={handleDistributionHeadBandOpenClick}
+                            onCellEditCommit={handleDistributionEditCommit}
                           />
                         ))
                       )}
