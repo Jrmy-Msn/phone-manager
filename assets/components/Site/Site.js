@@ -263,32 +263,6 @@ function Site({
       } finally {
       }
     }
-    // try {
-    //   for (const [key, value] of Object.entries(cell)) {
-    //     if (!grid.columns.find((v) => v.field === key)) continue
-    //     const formField = `phone[${key === event.field ? event.field : key}]`
-    //     const formValue = key === event.field ? event.value : value
-    //     formField &&
-    //       formValue &&
-    //       ((key === event.field && event.value) || key !== event.field) &&
-    //       formData.append(formField, formValue)
-    //   }
-    //   const { data } = await axios.post(
-    //     `${routes.timone_phone_update}/${cell.id}`,
-    //     formData
-    //   )
-    //   handlePhoneChange(data.id, data)
-    //   setSuccessMessage(`N° ${data.number} mis à jour`)
-    // } catch (error) {
-    //   if (error.response && error.response.data) {
-    //     handlePhoneChangeError(error.response.data)
-    //   } else if (error) {
-    //     handlePhoneChangeError(error.message)
-    //   }
-    //   handlePhoneChange(event.id, cell)
-    // } finally {
-    // }
-  }
 
   /**
    * Construit la grille de donnée en fonction de celle que l'on souhaite afficher (onglet...)
