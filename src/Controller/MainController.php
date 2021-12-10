@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Connector;
 use App\Entity\DistributionRoom;
 use App\Entity\Phone;
 use App\Form\PhoneType;
+use App\Form\ConnectorType;
+use App\Repository\PhoneRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -102,7 +105,7 @@ class MainController extends AbstractController
    *    requirements={"id"="\d+"})
    * @IsGranted("IS_AUTHENTICATED_FULLY")
    */
-  public function timoneUpdate(Phone $phone, Request $request, EntityManagerInterface $om): ?Response
+  public function timonePhoneUpdate(Phone $phone, Request $request, EntityManagerInterface $om): ?Response
   {
     $form = $this->createForm(PhoneType::class, $phone);
 
@@ -118,6 +121,57 @@ class MainController extends AbstractController
         ], 400);
       }
       return new JsonResponse($phone->asArray());
+    }
+
+    $errors = $this->getErrorMessages(($form));
+    return new JsonResponse($errors, 400);
+  }
+
+  /**
+   * @Route("/timone/phone/unplug/{id}", 
+   *    methods={"POST"}, 
+   *    name="app_timone_phone_unplug",
+   *    requirements={"id"="\d+"})
+   * @IsGranted("IS_AUTHENTICATED_FULLY")
+   */
+  public function timonePhoneUnplug(Phone $phone, Request $request, EntityManagerInterface $om): ?Response
+  {
+    try {
+      $connector = $phone->getConnector();
+      $phone->setConnector(null);
+      $om->persist($phone);
+      $om->flush();
+    } catch (Exception $exception) {
+      return new JsonResponse([
+        'message' => 'Erreur lors du débranchement du poste ' . $phone
+      ], 400);
+    }
+    return new JsonResponse($connector->asArray());
+  }
+
+  /**
+   * @Route("/timone/connector/update/{id}", 
+   *    methods={"POST"}, 
+   *    name="app_timone_connector_update",
+   *    requirements={"id"="\d+"})
+   * @IsGranted("IS_AUTHENTICATED_FULLY")
+   */
+  public function timoneConnectorUpdate(Connector $connector, Request $request, EntityManagerInterface $om): ?Response
+  {
+    $form = $this->createForm(ConnectorType::class, $connector);
+
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+      try {
+        $om->persist($connector);
+        $om->flush();
+      } catch (Exception $exception) {
+        return new JsonResponse([
+          'message' => 'Erreur lors de la mise à jour du connecteur ' . $connector
+        ], 400);
+      }
+      return new JsonResponse($connector->asArray());
     }
 
     $errors = $this->getErrorMessages(($form));

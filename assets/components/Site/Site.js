@@ -74,7 +74,7 @@ function Site({
   }
 
   const handleDistributionEditCommit = (event) => {
-    console.log(event)
+    updateDistribution(event)
   }
 
   /**
@@ -85,9 +85,30 @@ function Site({
   }
 
   /**
+   * Met à jour à l'affichage le connecteur qui à pour id "id" avec les données fournies "data"
+   */
+  const handleConnectorChange = (id, data) => {
+  }
+
+  /**
    * Met en forme les éventuelles erreurs lié à la modification d'un poste
    */
   const handlePhoneChangeError = (errors) => {
+    let message = (
+      <ul>
+        {errors.map((error, index) => (
+          <li key={index}>{error}</li>
+        ))}
+      </ul>
+    )
+
+    setErrorMessage(message)
+  }
+
+  /**
+   * Met en forme les éventuelles erreurs lié à la modification d'un poste
+   */
+  const handleConnectorChangeError = (errors) => {
     let message = (
       <ul>
         {errors.map((error, index) => (
@@ -136,6 +157,26 @@ function Site({
   }
 
   /**
+   * Renvoi le bandeau qui est entrain d'être visualisé ou modifié.
+   */
+  const getCurrentDistributionHeadBand = () => {
+    if (!distributionHeadBandOpen) return
+
+    const distribution = distributions.find(
+      (distribution) =>
+        distribution.id === distributionHeadBandOpen.distributionId
+    )
+
+    if (!distribution) return
+
+    const headBand = distribution.headBands.find(
+      (headBand) => headBand.id === distributionHeadBandOpen.headBandId
+    )
+
+    return headBand
+  }
+
+  /**
    * Met à jour un poste
    * Toutes les données pour un poste sont récupérées et transformées en données de formulaire
    * puis envoyées au serveur pour mise à jour de la base de donnée
@@ -174,6 +215,82 @@ function Site({
   }
 
   /**
+   * Met à jour un bandeau d'un redistributeur
+   * L'ancien numéro de poste est modifié par le nouveau sur le connecteur sélectionné (mise à jour en BDD)
+   * Le nouveau numéro de poste est alors "débranché" de son ancien connecteur (mise à jour en BDD)
+   * En retour, ce qui est enregistré en base de donnée est retourné est utilisé pour faire correspondre la donnée en base de donnée
+   * et ce qui est affiché
+   * En cas d'erreur une notification est affichée, et les modifications sont annulées
+   */
+  const updateDistribution = async (event) => {
+    const formData = new FormData()
+    try {
+      const headBand = getCurrentDistributionHeadBand()
+      if (!headBand)
+        throw new Error("Aucun bandeau n'est en cours de modification")
+
+      const connector = headBand.connectors[Number(event.field)]
+
+      if (!connector) throw new Error("Le connecteur à modifier n'existe pas")
+
+      const oldPhoneId =
+        event.row[Number(event.field)] &&
+        Number(event.row[Number(event.field)].id)
+
+      if (oldPhoneId) {
+        const { data } = await axios.post(
+          `${routes.timone_phone_unplug}/${oldPhoneId}`
+        )
+        handleConnectorChange(data.id, data)
+      }
+
+      const newPhoneId = event.value && Number(event.value.id)
+      newPhoneId && formData.append(`connector[phone]`, newPhoneId)
+
+      const { data } = await axios.post(
+        `${routes.timone_connector_update}/${connector.id}`,
+        formData
+      )
+      handleConnectorChange(data.id, data)
+    } catch (error) {
+      console.error(error)
+        if (error.response && error.response.data) {
+          handleConnectorChangeError(error.response.data)
+        } else if (error) {
+          handleConnectorChangeError(error.message)
+        }
+        handleConnectorChange(event.id, connector)
+      } finally {
+      }
+    }
+    // try {
+    //   for (const [key, value] of Object.entries(cell)) {
+    //     if (!grid.columns.find((v) => v.field === key)) continue
+    //     const formField = `phone[${key === event.field ? event.field : key}]`
+    //     const formValue = key === event.field ? event.value : value
+    //     formField &&
+    //       formValue &&
+    //       ((key === event.field && event.value) || key !== event.field) &&
+    //       formData.append(formField, formValue)
+    //   }
+    //   const { data } = await axios.post(
+    //     `${routes.timone_phone_update}/${cell.id}`,
+    //     formData
+    //   )
+    //   handlePhoneChange(data.id, data)
+    //   setSuccessMessage(`N° ${data.number} mis à jour`)
+    // } catch (error) {
+    //   if (error.response && error.response.data) {
+    //     handlePhoneChangeError(error.response.data)
+    //   } else if (error) {
+    //     handlePhoneChangeError(error.message)
+    //   }
+    //   handlePhoneChange(event.id, cell)
+    // } finally {
+    // }
+  }
+
+  /**
    * Construit la grille de donnée en fonction de celle que l'on souhaite afficher (onglet...)
    */
   const constructGrid = () => {
@@ -202,17 +319,7 @@ function Site({
               })
         break
       case "distribution":
-        if (!distributionHeadBandOpen) return
-        const distribution = distributions.find(
-          (distribution) =>
-            distribution.id === distributionHeadBandOpen.distributionId
-        )
-
-        if (!distribution) return
-
-        const headBand = distribution.headBands.find(
-          (headBand) => headBand.id === distributionHeadBandOpen.headBandId
-        )
+        const headBand = getCurrentDistributionHeadBand()
 
         if (!headBand) return
 
@@ -238,8 +345,19 @@ function Site({
                   fullWidth
                   size="small"
                   defaultValue={params.value}
+                  value={params.value}
                   noOptionsText="Aucun n°"
                   options={phones}
+                  onChange={(event, newValue) => {
+                    params.api.setEditCellValue(
+                      {
+                        id: params.id,
+                        field: params.field,
+                        value: newValue,
+                      },
+                      event
+                    )
+                  }}
                   getOptionLabel={(option) => `${option.number}`}
                   filterOptions={(options, state) => {
                     return options.filter((option) =>

@@ -31,21 +31,58 @@ class AppFixtures extends Fixture
     $manager->persist($user);
 
     // DISTRIBUTION ROOM
-    $headband1 = new HeadBand('A', 24);
-    $headband2 = new HeadBand('B', 12);
-    $room = new DistributionRoom('SR-1', new ArrayCollection([$headband1, $headband2]));
-    $manager->persist($room);
+    $headbands = [];
+    $headbands[] = new HeadBand('A', 24);
+    $headbands[] = new HeadBand('B', 24);
+    $headbands[] = new HeadBand('A', 24);
+    $headbands[] = new HeadBand('B', 24);
+    $headbands[] = new HeadBand('A', 24);
+    $room1 = new DistributionRoom('SR-1', new ArrayCollection([$headbands[0], $headbands[1]]));
+    $room2 = new DistributionRoom('SR-2', new ArrayCollection([$headbands[2], $headbands[3]]));
+    $room3 = new DistributionRoom('SR-3', new ArrayCollection([$headbands[4]]));
+    $manager->persist($room1);
+    $manager->persist($room2);
+    $manager->persist($room3);
+
+    $manager->flush();
 
     // PHONE
-    $phone = new Phone(6000);
-    $phone->setReserved(true);
-    $phone->setLocation('LOGT');
-    $phone->setAssignedTo('EM REGIONAL');
-    $phone->clusterFactory(4, 1, 8);
-    $phone->distributionFactory('A7', 5, 7);
-    $phone->connectorFactory($headband1, 1);
-    $phone->setType('ANALOGIQUE');
-    $manager->persist($phone);
+    function generateRandomString($length = 1)
+    {
+      $characters = 'ABCD';
+      $number = random_int(1, 8);
+      $charactersLength = strlen($characters);
+      $randomString = '';
+      for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+      }
+      return $randomString . $number;
+    }
+
+    $randReserved = (bool)random_int(0, 1);
+    $randLocation = (bool)random_int(0, 1) ? 'LOGT' : 'BUR';
+    $randType = (bool)random_int(0, 1) ? 'ANAMOGIQUE' : 'NUMERIQUE';
+    $randAssignedTo = (bool)random_int(0, 1) ? 'EM REGIONAL' : 'AUTRE';
+    $randCluster = random_int(1, 4);
+    $randClusterCard = random_int(1, 4);
+    $randClusterChannel = random_int(1, 30);
+    $randDistribution = generateRandomString();
+    $randDistributionCard = random_int(1, 4);
+    $randDistributionChannel = random_int(1, 30);
+    $randHeadBand = random_int(0, 4);
+    $randHeadBand = $headbands[$randHeadBand];
+
+    for ($i = 0; $i < 10; $i++) {
+      $phone = new Phone(random_int(6000, 6200));
+      $phone->setReserved($randReserved);
+      $phone->setLocation($randLocation);
+      $phone->setAssignedTo($randAssignedTo);
+      $phone->clusterFactory($randCluster, $randClusterCard, $randClusterChannel);
+      $phone->distributionFactory($randDistribution, $randDistributionCard, $randDistributionChannel);
+      $phone->connectorFactory($randHeadBand, $i);
+      $phone->setType($randType);
+      $manager->persist($phone);
+    }
 
     $manager->flush();
   }

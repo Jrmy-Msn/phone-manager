@@ -8,7 +8,9 @@ parameters:
         timone_distribution: '/timone/distribution'
         timone_phone_list: '/timone/phone/list'
         timone_phone_update: '/timone/phone/update'
+        timone_phone_unplug: '/timone/phone/unplug'
         timone_distribution_list: '/timone/distribution/list'
+        timone_connector_update: '/timone/connector/update'
         donadieu: '/donadieu'
 framework:
     secret: '%env(APP_SECRET)%'

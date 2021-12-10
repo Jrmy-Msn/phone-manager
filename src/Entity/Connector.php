@@ -38,6 +38,12 @@ class Connector
     $this->number = $number;
   }
 
+  public function __toString(): string
+  {
+    return $this->headBand->getDistributionRoom()->getLabel() . ' - ' . $this->headBand->getLabel()
+      . ' : port ' . $this->number . '<==>' . $this->phone->getNumber();
+  }
+
   public function getId(): ?int
   {
     return $this->id;
@@ -92,8 +98,8 @@ class Connector
   public function asArray()
   {
     return [
-      'id' => $this->getId(),
-      'number' => $this->getNumber(),
+      'id' => $this->id,
+      'number' => $this->number,
     ];
   }
 }
