@@ -1,4 +1,6 @@
 import axios from "axios"
+import React, { useEffect, useState } from "react"
+import { NavLink } from "react-router-dom"
 import {
   Alert,
   Box,
@@ -6,27 +8,16 @@ import {
   LinearProgress,
   Snackbar,
   Tab,
-  TableContainer,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Paper,
   Autocomplete,
   TextField,
-  InputAdornment,
 } from "@mui/material"
-import { createFilterOptions } from "@mui/material/Autocomplete"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import PhoneDisabledIcon from "@mui/icons-material/PhoneDisabled"
 import DnsIcon from "@mui/icons-material/Dns"
 import PhoneIcon from "@mui/icons-material/Phone"
 import { DataGrid, GridToolbar, GridOverlay } from "@mui/x-data-grid"
-import React, { useEffect, useState } from "react"
-import { NavLink } from "react-router-dom"
 import HeaderBar from "../HeaderBar/HeaderBar"
-import { DistributionRow } from "./DistributionRoom"
+import DistributionRoom from "./DistributionRoom"
 import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
 import { PHONE_COLUMNS_DESCRIPTION } from "./PhoneColumnsDescription"
 import "./Site.scss"
@@ -40,7 +31,6 @@ function Site({
 }) {
   const [phones, setPhones] = useState([])
   const [distributions, setDistributions] = useState([])
-  const [distributionHeadBandOpen, setDistributionHeadBandOpen] = useState()
   const [tab, setTab] = useState(activeTab)
   const [grid, setGrid] = useState({
     columns: [],
@@ -58,26 +48,6 @@ function Site({
   }
 
   /**
-   * Ouvre le panneau du bandeau cliqué et ferme celui qui était ouvert
-   * Si celui ouvert est le bandeau cliqué, c'est celui-ci qui se ferme,
-   * ce qui a pour action d'avoir tous les bandeaux fermés
-   */
-  const handleDistributionHeadBandOpenClick = (distributionId, headBandId) => {
-    if (
-      distributionHeadBandOpen &&
-      headBandId === distributionHeadBandOpen.headBandId
-    ) {
-      setDistributionHeadBandOpen(undefined)
-    } else {
-      setDistributionHeadBandOpen({ distributionId, headBandId })
-    }
-  }
-
-  const handleDistributionEditCommit = (event) => {
-    updateDistribution(event)
-  }
-
-  /**
    * Met à jour à l'affichage le poste qui à pour id "id" avec les données fournies "data"
    */
   const handlePhoneChange = (id, data) => {
@@ -85,30 +55,9 @@ function Site({
   }
 
   /**
-   * Met à jour à l'affichage le connecteur qui à pour id "id" avec les données fournies "data"
-   */
-  const handleConnectorChange = (id, data) => {
-  }
-
-  /**
    * Met en forme les éventuelles erreurs lié à la modification d'un poste
    */
   const handlePhoneChangeError = (errors) => {
-    let message = (
-      <ul>
-        {errors.map((error, index) => (
-          <li key={index}>{error}</li>
-        ))}
-      </ul>
-    )
-
-    setErrorMessage(message)
-  }
-
-  /**
-   * Met en forme les éventuelles erreurs lié à la modification d'un poste
-   */
-  const handleConnectorChangeError = (errors) => {
     let message = (
       <ul>
         {errors.map((error, index) => (
@@ -157,26 +106,6 @@ function Site({
   }
 
   /**
-   * Renvoi le bandeau qui est entrain d'être visualisé ou modifié.
-   */
-  const getCurrentDistributionHeadBand = () => {
-    if (!distributionHeadBandOpen) return
-
-    const distribution = distributions.find(
-      (distribution) =>
-        distribution.id === distributionHeadBandOpen.distributionId
-    )
-
-    if (!distribution) return
-
-    const headBand = distribution.headBands.find(
-      (headBand) => headBand.id === distributionHeadBandOpen.headBandId
-    )
-
-    return headBand
-  }
-
-  /**
    * Met à jour un poste
    * Toutes les données pour un poste sont récupérées et transformées en données de formulaire
    * puis envoyées au serveur pour mise à jour de la base de donnée
@@ -215,168 +144,39 @@ function Site({
   }
 
   /**
-   * Met à jour un bandeau d'un redistributeur
-   * L'ancien numéro de poste est modifié par le nouveau sur le connecteur sélectionné (mise à jour en BDD)
-   * Le nouveau numéro de poste est alors "débranché" de son ancien connecteur (mise à jour en BDD)
-   * En retour, ce qui est enregistré en base de donnée est retourné est utilisé pour faire correspondre la donnée en base de donnée
-   * et ce qui est affiché
-   * En cas d'erreur une notification est affichée, et les modifications sont annulées
-   */
-  const updateDistribution = async (event) => {
-    const formData = new FormData()
-    try {
-      const headBand = getCurrentDistributionHeadBand()
-      if (!headBand)
-        throw new Error("Aucun bandeau n'est en cours de modification")
-
-      const connector = headBand.connectors[Number(event.field)]
-
-      if (!connector) throw new Error("Le connecteur à modifier n'existe pas")
-
-      const oldPhoneId =
-        event.row[Number(event.field)] &&
-        Number(event.row[Number(event.field)].id)
-
-      if (oldPhoneId) {
-        const { data } = await axios.post(
-          `${routes.timone_phone_unplug}/${oldPhoneId}`
-        )
-        handleConnectorChange(data.id, data)
-      }
-
-      const newPhoneId = event.value && Number(event.value.id)
-      newPhoneId && formData.append(`connector[phone]`, newPhoneId)
-
-      const { data } = await axios.post(
-        `${routes.timone_connector_update}/${connector.id}`,
-        formData
-      )
-      handleConnectorChange(data.id, data)
-    } catch (error) {
-      console.error(error)
-        if (error.response && error.response.data) {
-          handleConnectorChangeError(error.response.data)
-        } else if (error) {
-          handleConnectorChangeError(error.message)
-        }
-        handleConnectorChange(event.id, connector)
-      } finally {
-      }
-    }
-
-  /**
    * Construit la grille de donnée en fonction de celle que l'on souhaite afficher (onglet...)
    */
   const constructGrid = () => {
     let columns = [],
       rows = []
+    columns = PHONE_COLUMNS_DESCRIPTION
 
-    switch (tab) {
-      case "phone":
-        columns = PHONE_COLUMNS_DESCRIPTION
-
-        rows =
-          phones.length === 0
-            ? []
-            : phones.map((phone) => {
-                return {
-                  id: phone.id,
-                  number: phone.number,
-                  type: phone.type,
-                  assignedTo: phone.assignedTo,
-                  location: phone.location,
-                  cluster: phone.cluster,
-                  clusterCard: phone.clusterCard,
-                  clusterChannel: phone.clusterChannel,
-                  reserved: phone.reserved,
-                }
-              })
-        break
-      case "distribution":
-        const headBand = getCurrentDistributionHeadBand()
-
-        if (!headBand) return
-
-        columns = headBand.connectors.map((connector) => {
-          return {
-            field: String(connector.number),
-            type: "string",
-            editable: true,
-            filterable: false,
-            sortable: false,
-            headerAlign: "center",
-            renderCell: (params) => {
-              return (
-                <span>
-                  <strong>{params.value ? params.value.type[0] : ""}.</strong>
-                  {params.value ? params.value.number : ""}
-                </span>
-              )
-            },
-            renderEditCell: (params) => {
-              return (
-                <Autocomplete
-                  fullWidth
-                  size="small"
-                  defaultValue={params.value}
-                  value={params.value}
-                  noOptionsText="Aucun n°"
-                  options={phones}
-                  onChange={(event, newValue) => {
-                    params.api.setEditCellValue(
-                      {
-                        id: params.id,
-                        field: params.field,
-                        value: newValue,
-                      },
-                      event
-                    )
-                  }}
-                  getOptionLabel={(option) => `${option.number}`}
-                  filterOptions={(options, state) => {
-                    return options.filter((option) =>
-                      `${option.type[0]}.${option.number}`.includes(
-                        state.inputValue
-                      )
-                    )
-                  }}
-                  renderOption={(props, option) => (
-                    <Box component="span" {...props}>
-                      <strong>{option.type[0]}</strong>.{option.number}
-                    </Box>
-                  )}
-                  renderInput={(props) => (
-                    <TextField {...props} label="N°" variant="standard" />
-                  )}
-                />
-              )
-            },
-            preProcessEditCellProps: (params) => {
-              const isValid =
-                params.props.value && params.props.value.number >= 1000
-              return { ...params.props, error: !isValid }
-            },
-            align: "center",
-            width: 120,
-          }
-        })
-
-        const row = {}
-        headBand.connectors.forEach((connector) => {
-          const phone = phones.find(
-            (phone) => phone.connector && phone.connector.id === connector.id
-          )
-          row.id = connector.id
-          row[connector.number] = phone ? phone : null
-        })
-        rows = [row]
-        break
-    }
+    rows =
+      phones.length === 0
+        ? []
+        : phones.map((phone) => {
+            return {
+              id: phone.id,
+              number: phone.number,
+              type: phone.type,
+              assignedTo: phone.assignedTo,
+              location: phone.location,
+              cluster: phone.cluster,
+              clusterCard: phone.clusterCard,
+              clusterChannel: phone.clusterChannel,
+              location: phone.location,
+              distribution: phone.distribution,
+              distributionCard: phone.distributionCard,
+              distributionChannel: phone.distributionChannel,
+              reserved: phone.reserved,
+            }
+          })
     setGrid({ columns, rows })
   }
 
   // --> Seulement au chargement de la page
   // Récupération des numéros de poste
+  // Récupération des redistributeurs
   useEffect(() => {
     ;(async function fetchData() {
       await getPhones()
@@ -389,8 +189,8 @@ function Site({
   // --> A chaque fois que la liste des postes change
   // Mise à jour du tableau
   useEffect(() => {
-    constructGrid()
-  }, [tab, distributionHeadBandOpen, phones, distributions])
+    if (tab === 'phone') constructGrid()
+  }, [tab, phones])
 
   const CustomLoadingOverlay = () => {
     return (
@@ -497,37 +297,11 @@ function Site({
             </Box>
           </TabPanel>
           <TabPanel sx={{ px: 0 }} value="distribution">
-            <Box
-              sx={{
-                display: "flex",
-              }}
-            >
-              <div style={{ flexGrow: 1 }}>
-                <TableContainer component={Paper}>
-                  <Table aria-label="collapsible table">
-                    <TableBody>
-                      {distributions.map((distrib) =>
-                        distrib.headBands.map((headBand) => (
-                          <DistributionRow
-                            key={`${distrib.id}_${headBand.id}`}
-                            distribution={distrib}
-                            headBand={headBand}
-                            grid={grid}
-                            open={
-                              distributionHeadBandOpen &&
-                              distributionHeadBandOpen.headBandId ===
-                                headBand.id
-                            }
-                            onOpenCLick={handleDistributionHeadBandOpenClick}
-                            onCellEditCommit={handleDistributionEditCommit}
-                          />
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-            </Box>
+            <DistributionRoom
+              tab={tab}
+              phones={phones}
+              distributions={distributions}
+            />
           </TabPanel>
         </TabContext>
       </Box>

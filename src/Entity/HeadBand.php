@@ -118,18 +118,22 @@ class HeadBand
     $this->connectors->add($connector);
   }
 
-  public function asArray()
+  public function asArray(?bool $deep = true)
   {
     $connectorsAsArray = [];
     foreach ($this->connectors as $connector) {
-      $connectorsAsArray[] = $connector->asArray();
+      $connectorsAsArray[] = $connector->asArray($deep);
     }
 
     $array = [
-      'id' => $this->getId(),
-      'label' => $this->getLabel(),
+      'id' => $this->id,
+      'label' => $this->label,
       'connectors' => $connectorsAsArray
     ];
+
+    if ($deep) {
+      $array['distributionRoom'] = $this->distributionRoom->asArray(false);
+    }
 
     return $array;
   }

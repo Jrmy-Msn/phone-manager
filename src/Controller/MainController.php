@@ -66,20 +66,19 @@ class MainController extends AbstractController
       foreach ($distributions as $distrib) {
         $distributionsAsArray[] = $distrib->asArray();
       }
+      return new JsonResponse($distributionsAsArray);
     } catch (Exception $exception) {
       return new JsonResponse([
         'message' => 'Erreur lors de la récupération de la liste des salles de répartiteur'
       ], 400);
     }
-
-    return new JsonResponse($distributionsAsArray);
   }
 
   /**
    * @Route("/timone/phone/list", name="app_timone_phone_list")
    * @IsGranted("IS_AUTHENTICATED_FULLY")
    */
-  public function timoneList(EntityManagerInterface $om): JsonResponse
+  public function timonePhoneList(EntityManagerInterface $om): JsonResponse
   {
     try {
       $repo = $om->getRepository(Phone::class);
@@ -89,13 +88,12 @@ class MainController extends AbstractController
       foreach ($phones as $phone) {
         $phonesAsArray[] = $phone->asArray();
       }
+      return new JsonResponse($phonesAsArray);
     } catch (Exception $exception) {
       return new JsonResponse([
         'message' => 'Erreur lors de la récupération de la liste des postes'
       ], 400);
     }
-
-    return new JsonResponse($phonesAsArray);
   }
 
   /**
@@ -141,12 +139,12 @@ class MainController extends AbstractController
       $phone->setConnector(null);
       $om->persist($phone);
       $om->flush();
+      return new JsonResponse($connector->asArray());
     } catch (Exception $exception) {
       return new JsonResponse([
         'message' => 'Erreur lors du débranchement du poste ' . $phone
       ], 400);
     }
-    return new JsonResponse($connector->asArray());
   }
 
   /**
@@ -166,12 +164,12 @@ class MainController extends AbstractController
       try {
         $om->persist($connector);
         $om->flush();
+        return new JsonResponse($connector->asArray());
       } catch (Exception $exception) {
         return new JsonResponse([
           'message' => 'Erreur lors de la mise à jour du connecteur ' . $connector
         ], 400);
       }
-      return new JsonResponse($connector->asArray());
     }
 
     $errors = $this->getErrorMessages(($form));

@@ -93,16 +93,16 @@ class DistributionRoom
     $this->headBands->add($headBand);
   }
 
-  public function asArray()
+  public function asArray(?bool $deep = true)
   {
     $headBandsAsArray = [];
     foreach ($this->headBands as $headBand) {
-      $headBandsAsArray[] = $headBand->asArray();
+      $headBandsAsArray[] = $headBand->asArray($deep);
     }
 
     return [
-      'id' => $this->getId(),
-      'label' => $this->getLabel(),
+      'id' => $this->id,
+      'label' => $this->label,
       'headBands' => $headBandsAsArray
     ];
   }

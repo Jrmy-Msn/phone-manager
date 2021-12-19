@@ -59,20 +59,20 @@ class AppFixtures extends Fixture
       return $randomString . $number;
     }
 
-    $randReserved = (bool)random_int(0, 1);
-    $randLocation = (bool)random_int(0, 1) ? 'LOGT' : 'BUR';
-    $randType = (bool)random_int(0, 1) ? 'ANAMOGIQUE' : 'NUMERIQUE';
-    $randAssignedTo = (bool)random_int(0, 1) ? 'EM REGIONAL' : 'AUTRE';
-    $randCluster = random_int(1, 4);
-    $randClusterCard = random_int(1, 4);
-    $randClusterChannel = random_int(1, 30);
-    $randDistribution = generateRandomString();
-    $randDistributionCard = random_int(1, 4);
-    $randDistributionChannel = random_int(1, 30);
-    $randHeadBand = random_int(0, 4);
-    $randHeadBand = $headbands[$randHeadBand];
-
     for ($i = 0; $i < 10; $i++) {
+      $randReserved = (bool)random_int(0, 1);
+      $randLocation = (bool)random_int(0, 1) ? 'LOGT' : 'BUR';
+      $randType = (bool)random_int(0, 1) ? 'ANAMOGIQUE' : 'NUMERIQUE';
+      $randAssignedTo = (bool)random_int(0, 1) ? 'EM REGIONAL' : 'AUTRE';
+      $randCluster = random_int(1, 4);
+      $randClusterCard = random_int(1, 4);
+      $randClusterChannel = random_int(1, 30);
+      $randDistribution = generateRandomString();
+      $randDistributionCard = random_int(1, 4);
+      $randDistributionChannel = random_int(1, 8);
+      $randHeadBand = random_int(0, 4);
+      $randHeadBand = $headbands[$randHeadBand];
+
       $phone = new Phone(random_int(6000, 6200));
       $phone->setReserved($randReserved);
       $phone->setLocation($randLocation);

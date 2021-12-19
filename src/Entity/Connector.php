@@ -95,11 +95,18 @@ class Connector
     return $this;
   }
 
-  public function asArray()
+  public function asArray(?bool $deep = true)
   {
-    return [
+    $array = [
       'id' => $this->id,
       'number' => $this->number,
     ];
+
+    if ($deep) {
+      if ($this->phone) $array['phone'] = $this->phone->asArray(false);
+      $array['headBand'] = $this->headBand->asArray(false);
+    }
+
+    return $array;
   }
 }

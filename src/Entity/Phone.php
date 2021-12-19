@@ -274,7 +274,7 @@ class Phone
     $this->setConnector($connector);
   }
 
-  public function asArray()
+  public function asArray(?bool $deep = true)
   {
     return [
       'id' => $this->getId(),
@@ -291,7 +291,7 @@ class Phone
       'location' => $this->getLocation(),
       'connector' =>
       $this->getConnector()
-        ? $this->getConnector()->asArray()
+        ? $this->getConnector()->asArray($deep)
         : null,
       'socket' => $this->getSocket(),
     ];
