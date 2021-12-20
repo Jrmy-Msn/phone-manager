@@ -85,6 +85,8 @@ function DistributionRow({
 
 function DistributionRoom({ tab, phones, distributions }) {
   const [distributionHeadBandOpen, setDistributionHeadBandOpen] = useState()
+  const [valueToModified, setValueToModified] = useState()
+  const [valueModified, setValueModified] = useState()
   const [grid, setGrid] = useState({
     columns: [],
     rows: [],
@@ -215,20 +217,14 @@ function DistributionRoom({ tab, phones, distributions }) {
 
       if (!connector) throw new Error("Le connecteur à modifier n'existe pas")
 
-      const oldPhoneId =
-        event.row &&
-        event.row[Number(event.field)] &&
-        Number(event.row[Number(event.field)].id)
-
-      if (oldPhoneId) {
+      if (valueToModified) {
         const { data } = await axios.post(
-          `${routes.timone_phone_unplug}/${oldPhoneId}`
+          `${routes.timone_phone_unplug}/${valueToModified.id}`
         )
         handleConnectorChange(data.id, data)
       }
 
-      const newPhoneId = event.value && Number(event.value.id)
-      newPhoneId && formData.append(`connector[phone]`, newPhoneId)
+      valueModified && formData.append(`connector[phone]`, valueModified.id)
 
       const { data } = await axios.post(
         `${routes.timone_connector_update}/${connector.id}`,
@@ -268,6 +264,9 @@ function DistributionRoom({ tab, phones, distributions }) {
       "🚀 ~ file: DistributionRoom.js ~ line 152 ~ DistributionRoom ~ handleDistributionEditStart ~ event",
       event
     )
+    // Avant la modification de la cellule, nous en gardons la valeur d'origine pour permetttre
+    // un retour en arrire en casd'annulation de l'opération.
+    setValueToModified(event.value)
   }
 
   const handleDistributionEditCommit = (event) => {
@@ -275,6 +274,10 @@ function DistributionRoom({ tab, phones, distributions }) {
       "🚀 ~ file: DistributionRoom.js ~ line 161 ~ DistributionRoom ~ handleDistributionEditCommit ~ event",
       event
     )
+    // Dans ce cas, la validation par la touche "ENTREE" n'a pas été effectuée, cela revient à annuler l'opération
+    // en quittant la cellule sans confirmation.
+    if (event.cellMode) return
+    setValueModified(event.value)
   }
 
   const handleDistributionEditStop = (event) => {
@@ -282,6 +285,13 @@ function DistributionRoom({ tab, phones, distributions }) {
       "🚀 ~ file: DistributionRoom.js ~ line 168 ~ DistributionRoom ~ handleDistributionEditStop ~ event",
       event
     )
+    // En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
+    // sinon, un retour arrière est effectué.
+    if (valueModified) {
+
+    } else {
+
+    }
   }
 
   /**
@@ -309,7 +319,7 @@ function DistributionRoom({ tab, phones, distributions }) {
   // --> A chaque fois que la liste des redistributeurs change
   // Mise à jour du tableau
   useEffect(() => {
-    if (tab === 'distribution') constructGrid()
+    if (tab === "distribution") constructGrid()
   }, [tab, distributionHeadBandOpen, distributions])
 
   return (
