@@ -84,9 +84,13 @@ function DistributionRow({
 }
 
 function DistributionRoom({ tab, phones, distributions }) {
+  // état du bandeau actif
   const [distributionHeadBandOpen, setDistributionHeadBandOpen] = useState()
+  // état de la valeur d'un connecteur avant modification
   const [valueToModified, setValueToModified] = useState()
+  // état de la valeur d'un connecteur après modification
   const [valueModified, setValueModified] = useState()
+  // état du tableau de donnée actif
   const [grid, setGrid] = useState({
     columns: [],
     rows: [],
@@ -113,7 +117,7 @@ function DistributionRoom({ tab, phones, distributions }) {
   }
 
   /**
-   * Construit la grille de donnée en fonction de celle que l'on souhaite afficher (onglet...)
+   * Construit le tableau de donnée du bandeau actif d'un redistributeur
    */
   const constructGrid = () => {
     let columns = [],
@@ -201,37 +205,42 @@ function DistributionRoom({ tab, phones, distributions }) {
   /**
    * Met à jour un bandeau d'un redistributeur.
    * L'ancien numéro de poste est modifié par le nouveau sur le connecteur sélectionné (mise à jour en BDD).
-   * Le nouveau numéro de poste est alors "débranché" de son ancien connecteur (mise à jour en BDD).
-   * En retour, ce qui est enregistré en base de donnée est retourné est utilisé pour faire correspondre la donnée en base de donnée
-   * et ce qui est affiché.
+   * L'ancien numéro de poste est alors "débranché" de son connecteur (mise à jour en BDD).
+   * Le nouveau numéro de poste lui est mis à jour avec son nouveau conecteur.
+   * En retour, ce qui est enregistré en base de donnée est retourné et utilisé pour faire mettre à jour l'affichage.
    * En cas d'erreur une notification est affichée, et les modifications sont annulées.
    */
   const updateDistribution = async (event) => {
     const formData = new FormData()
     try {
+      // récpération du bandeau ouvert (qui est entrain d'être modifié)
       const headBand = getCurrentDistributionHeadBand()
       if (!headBand)
         throw new Error("Aucun bandeau n'est en cours de modification")
 
+      // récupération du connecteur à modifier
       const connector = headBand.connectors[Number(event.field)]
-
       if (!connector) throw new Error("Le connecteur à modifier n'existe pas")
 
+      // Si une valeur est déjà présente => le poste correspondant est "débranché" (plus de liaison à un connecteur)
       if (valueToModified) {
         const { data } = await axios.post(
           `${routes.timone_phone_unplug}/${valueToModified.id}`
         )
+        // mise à jour des données clientes par les données seveurs
         handleConnectorChange(data.id, data)
       }
 
+      // mise à jour du nouveau poste choisit pour le connecteur
       valueModified && formData.append(`connector[phone]`, valueModified.id)
-
       const { data } = await axios.post(
         `${routes.timone_connector_update}/${connector.id}`,
         formData
       )
+      // mise à jour des données clientes par les données seveurs
       handleConnectorChange(data.id, data)
     } catch (error) {
+      // retour arrière sur les données clientes
       console.error(error)
       if (error.response && error.response.data) {
         handleConnectorChangeError(error.response.data)
