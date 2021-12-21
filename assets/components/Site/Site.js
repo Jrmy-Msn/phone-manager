@@ -55,6 +55,19 @@ function Site({
   }
 
   /**
+   * Met à jour à l'affichage, le connecteur qui à pour id "id" avec les données fournies "data"
+   */
+  const handleDistributionsChange = (id, data) => {
+    console.log(
+      "🚀 ~ file: Site.js ~ line 61 ~ Site ~ handleDistributionsChange ~",
+      id,
+      data,
+      distributions
+    )
+    setDistributions(distributions.map((v) => (v.id === id ? data : v)))
+  }
+
+  /**
    * Met en forme les éventuelles erreurs lié à la modification d'un poste
    */
   const handlePhoneChangeError = (errors) => {
@@ -189,7 +202,7 @@ function Site({
   // --> A chaque fois que la liste des postes change
   // Mise à jour du tableau
   useEffect(() => {
-    if (tab === 'phone') constructGrid()
+    if (tab === "phone") constructGrid()
   }, [tab, phones])
 
   const CustomLoadingOverlay = () => {
@@ -298,9 +311,11 @@ function Site({
           </TabPanel>
           <TabPanel sx={{ px: 0 }} value="distribution">
             <DistributionRoom
+              routes={routes}
               tab={tab}
               phones={phones}
               distributions={distributions}
+              handleDistributionsChange={handleDistributionsChange}
             />
           </TabPanel>
         </TabContext>

@@ -83,7 +83,13 @@ function DistributionRow({
   )
 }
 
-function DistributionRoom({ tab, phones, distributions }) {
+function DistributionRoom({
+  tab,
+  phones,
+  distributions,
+  routes,
+  handleDistributionsChange,
+}) {
   // état du bandeau actif
   const [distributionHeadBandOpen, setDistributionHeadBandOpen] = useState()
   // état de la valeur d'un connecteur avant modification
@@ -212,6 +218,7 @@ function DistributionRoom({ tab, phones, distributions }) {
    */
   const updateDistribution = async (event) => {
     const formData = new FormData()
+
     try {
       // récpération du bandeau ouvert (qui est entrain d'être modifié)
       const headBand = getCurrentDistributionHeadBand()
@@ -227,8 +234,9 @@ function DistributionRoom({ tab, phones, distributions }) {
         const { data } = await axios.post(
           `${routes.timone_phone_unplug}/${valueToModified.id}`
         )
+
         // mise à jour des données clientes par les données seveurs
-        handleConnectorChange(data.id, data)
+        handleDistributionsChange(data.id, data)
       }
 
       // mise à jour du nouveau poste choisit pour le connecteur
@@ -237,18 +245,18 @@ function DistributionRoom({ tab, phones, distributions }) {
         `${routes.timone_connector_update}/${connector.id}`,
         formData
       )
+
       // mise à jour des données clientes par les données seveurs
-      handleConnectorChange(data.id, data)
+      handleDistributionsChange(data.id, data)
     } catch (error) {
       // retour arrière sur les données clientes
       console.error(error)
-      if (error.response && error.response.data) {
+      // cas d'une erreur avec le serveur
+      if (error && error.response && error.response.data) {
         handleConnectorChangeError(error.response.data)
-      } else if (error) {
-        handleConnectorChangeError(error.message)
       }
-      handleConnectorChange(event.id, connector)
-    } finally {
+      // autres cas
+      else if (error) handleConnectorChangeError(error.message)
     }
   }
 
@@ -285,8 +293,7 @@ function DistributionRoom({ tab, phones, distributions }) {
     )
     // Dans ce cas, la validation par la touche "ENTREE" n'a pas été effectuée, cela revient à annuler l'opération
     // en quittant la cellule sans confirmation.
-    if (event.cellMode) return
-    setValueModified(event.value)
+    setValueModified(event.cellMode ? undefined : event.value)
   }
 
   const handleDistributionEditStop = (event) => {
@@ -295,12 +302,7 @@ function DistributionRoom({ tab, phones, distributions }) {
       event
     )
     // En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
-    // sinon, un retour arrière est effectué.
-    if (valueModified) {
-
-    } else {
-
-    }
+    if (valueModified) updateDistribution(event)
   }
 
   /**
@@ -316,13 +318,6 @@ function DistributionRoom({ tab, phones, distributions }) {
     )
 
     setErrorMessage(message)
-  }
-
-  /**
-   * Met à jour à l'affichage le connecteur qui à pour id "id" avec les données fournies "data"
-   */
-  const handleConnectorChange = (id, data) => {
-    console.log(id, data)
   }
 
   // --> A chaque fois que la liste des redistributeurs change

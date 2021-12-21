@@ -139,7 +139,10 @@ class MainController extends AbstractController
       $phone->setConnector(null);
       $om->persist($phone);
       $om->flush();
-      return new JsonResponse($connector->asArray());
+      return new JsonResponse([
+        'phone' => $phone->asArray(),
+        'connector' => $connector ? $connector->asArray() : null,
+      ]);
     } catch (Exception $exception) {
       return new JsonResponse([
         'message' => 'Erreur lors du débranchement du poste ' . $phone
@@ -162,9 +165,17 @@ class MainController extends AbstractController
 
     if ($form->isSubmitted() && $form->isValid()) {
       try {
+
+        $repo = $om->getRepository(Phone::class);
+        $phone = $repo->findOneBy(['number' => $connector->getPhone()->getNumber()]);
+        $oldConnector = $phone->getConnector()->asArray();
+
         $om->persist($connector);
         $om->flush();
-        return new JsonResponse($connector->asArray());
+        return new JsonResponse([
+          'oldConnector' => $oldConnector,
+          'connector' => $connector->asArray(),
+        ]);
       } catch (Exception $exception) {
         return new JsonResponse([
           'message' => 'Erreur lors de la mise à jour du connecteur ' . $connector
