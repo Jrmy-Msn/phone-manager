@@ -128,13 +128,10 @@ class HeadBand
     $array = [
       'id' => $this->id,
       'label' => $this->label,
-      'connectors' => $connectorsAsArray
+      'connectors' => $connectorsAsArray,
+      'distributionRoom' => $this->distributionRoom->asArray(false)
     ];
-
-    if ($deep) {
-      $array['distributionRoom'] = $this->distributionRoom->asArray(false);
-    }
-
+    
     return $array;
   }
 }

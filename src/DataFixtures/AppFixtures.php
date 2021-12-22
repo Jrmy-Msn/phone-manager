@@ -59,6 +59,7 @@ class AppFixtures extends Fixture
       return $randomString . $number;
     }
 
+    $aNumbers = [];
     for ($i = 0; $i < 10; $i++) {
       $randReserved = (bool)random_int(0, 1);
       $randLocation = (bool)random_int(0, 1) ? 'LOGT' : 'BUR';
@@ -73,7 +74,11 @@ class AppFixtures extends Fixture
       $randHeadBand = random_int(0, 4);
       $randHeadBand = $headbands[$randHeadBand];
 
-      $phone = new Phone(random_int(6000, 6200));
+      $number = random_int(6000, 6200);
+      while (array_search($number, $aNumbers)) {
+        $number = random_int(6000, 6200);
+      }
+      $phone = new Phone($number);
       $phone->setReserved($randReserved);
       $phone->setLocation($randLocation);
       $phone->setAssignedTo($randAssignedTo);

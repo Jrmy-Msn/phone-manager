@@ -165,15 +165,10 @@ class MainController extends AbstractController
 
     if ($form->isSubmitted() && $form->isValid()) {
       try {
-
-        $repo = $om->getRepository(Phone::class);
-        $phone = $repo->findOneBy(['number' => $connector->getPhone()->getNumber()]);
-        $oldConnector = $phone->getConnector()->asArray();
-
         $om->persist($connector);
         $om->flush();
         return new JsonResponse([
-          'oldConnector' => $oldConnector,
+          'phone' => $connector->getPhone()->asArray(),
           'connector' => $connector->asArray(),
         ]);
       } catch (Exception $exception) {

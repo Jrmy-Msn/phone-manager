@@ -19,6 +19,10 @@ import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 
+/**
+ * Ce composant correspond à une ligne du tableau des redistributeur
+ * La ligne corespond à un bandeau dans un redistributeur (e.g SR-1 Bandeau A )
+ */
 function DistributionRow({
   distribution,
   headBand,
@@ -67,13 +71,6 @@ function DistributionRow({
                 onCellEditCommit={(event) => onCellEditCommit(event)}
                 onCellEditStop={(event) => onCellEditStop(event)}
                 localeText={GRID_FR_LOCALE_TEXT}
-                components={
-                  {
-                    //   LoadingOverlay: CustomLoadingOverlay,
-                    //   Toolbar: GridToolbar,
-                    //   NoRowsOverlay: CustomNoRowsOverlay,
-                  }
-                }
               />
             </Box>
           </Collapse>
@@ -83,6 +80,14 @@ function DistributionRow({
   )
 }
 
+/**
+ * Ce composant correspond à un bandeau dans un redistributeur
+ *  -------------------------------------
+ * |    1    |   2    |    3   |    4    |
+ * |-------------------------------------
+ * | A2xxxx  | N2xxxx | N2xxxx | A2xxxx  |
+ * ----------------------------------------
+ */
 function DistributionRoom({
   tab,
   phones,
@@ -104,6 +109,7 @@ function DistributionRoom({
 
   /**
    * Renvoi le bandeau qui est entrain d'être visualisé ou modifié.
+   * Peut renvoyer "undefined" si aucun bandeau n'est actif
    */
   const getCurrentDistributionHeadBand = () => {
     if (!distributionHeadBandOpen) return
@@ -123,7 +129,9 @@ function DistributionRoom({
   }
 
   /**
-   * Construit le tableau de donnée du bandeau actif d'un redistributeur
+   * Construit le tableau de donnée du bandeau actif d'un redistributeur à partir des données
+   * clientes récupérées depuis le serveur au démarrage de l'application
+   * (cf documentation MUI DATAGRID)
    */
   const constructGrid = () => {
     let columns = [],
@@ -218,6 +226,7 @@ function DistributionRoom({
    */
   const updateDistribution = async (event) => {
     const formData = new FormData()
+    let phone1, phone2, connector1, connector2
 
     try {
       // récpération du bandeau ouvert (qui est entrain d'être modifié)
@@ -229,14 +238,22 @@ function DistributionRoom({
       const connector = headBand.connectors[Number(event.field)]
       if (!connector) throw new Error("Le connecteur à modifier n'existe pas")
 
-      // Si une valeur est déjà présente => le poste correspondant est "débranché" (plus de liaison à un connecteur)
+      // Si une valeur est déjà présente => le poste correspondant est "débranché" (plus de liaison à ce connecteur)
       if (valueToModified) {
         const { data } = await axios.post(
           `${routes.timone_phone_unplug}/${valueToModified.id}`
         )
+        phone1 = data.phone
+        connector1 = data.connector
+      }
 
-        // mise à jour des données clientes par les données seveurs
-        handleDistributionsChange(data.id, data)
+      // Si le poste de remplacement est déjà "branché" ailleurs, on le "débranche" (plus de liaison à ce connecteur)
+      if (valueModified.connector) {
+        const { data } = await axios.post(
+          `${routes.timone_phone_unplug}/${valueModified.id}`
+        )
+        phone2 = data.phone
+        connector2 = data.connector
       }
 
       // mise à jour du nouveau poste choisit pour le connecteur
@@ -245,9 +262,11 @@ function DistributionRoom({
         `${routes.timone_connector_update}/${connector.id}`,
         formData
       )
+      phone2 = data.phone
+      connector1 = data.connector
 
       // mise à jour des données clientes par les données seveurs
-      handleDistributionsChange(data.id, data)
+      handleDistributionsChange(phone1, phone2, connector1, connector2)
     } catch (error) {
       // retour arrière sur les données clientes
       console.error(error)

@@ -56,15 +56,68 @@ function Site({
 
   /**
    * Met à jour à l'affichage, le connecteur qui à pour id "id" avec les données fournies "data"
+   * "phone1" corespond au numéro de poste déjà présent sur un conecteur avant la modification
+   * "phone2" corespond au numéro de poste souhaité, sur le connecteur
+   * "connector1" correspond au connecteur en cours de modification
+   * "connector2" correspond au connecteur du nouveau numéro de poste souhaité
+   * "phone1" peut être "undefined" si le nouveu numéro est inséré sur un connecteur vide
+   * "conector2" peut être "undefined" si le nouveu numéro n'était déjà pas connecté
+   * La valeur des 4 arguments est obtenue à partir du serveur
    */
-  const handleDistributionsChange = (id, data) => {
-    console.log(
-      "🚀 ~ file: Site.js ~ line 61 ~ Site ~ handleDistributionsChange ~",
-      id,
-      data,
-      distributions
+  const handleDistributionsChange = (
+    phone1,
+    phone2,
+    connector1,
+    connector2
+  ) => {
+    // mise à jour des données clientes des numéros de poste
+    setPhones(
+      phones.map((v) => {
+        if (phone1 && v.id === phone1.id) return phone1
+        if (phone2 && v.id === phone2.id) return phone2
+        return v
+      })
     )
-    setDistributions(distributions.map((v) => (v.id === id ? data : v)))
+
+    // récupération des du redistributeur du "connector1"
+    const distributionId1 =
+      connector1 && connector1.headBand.distributionRoom.id
+    // récupération des du bandeau du "connector1"
+    const headBandId1 = connector1 && connector1.headBand.id
+    // récupération des du redistributeur du "connector2"
+    const distributionId2 =
+      connector2 && connector2.headBand.distributionRoom.id
+    // récupération des du bandeau du "connector2"
+    const headBandId2 = connector2 && connector2.headBand.id
+
+    // mise à jour des données clientes des redistributeurs
+    setDistributions(
+      distributions.map((distribution) => {
+        // recherche du bandeau du "connector1" dans les données clientes
+        const headBand1 = distribution.headBands.find(
+          (h) => h.id === headBandId1
+        )
+        // recherche du bandeau du "connector2" dans les données clientes
+        const headBand2 = distribution.headBands.find(
+          (h) => h.id === headBandId2
+        )
+
+        // si la donnée courante correspond au bandeau et redistributeur du "connector1"
+        // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector1"
+        if (distribution.id === distributionId1 && headBand1) {
+          headBand1.connectors.map((c) =>
+            c.id === connector1.id ? connector1 : c
+          )
+        // si la donnée courante correspond au bandeau et redistributeur du "connector2"
+        // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector2"
+        } else if (distribution.id === distributionId2 && headBand2) {
+          headBand2.connectors.map((c) =>
+            c.id === connector2.id ? connector1 : c
+          )
+        }
+        return distribution
+      })
+    )
   }
 
   /**

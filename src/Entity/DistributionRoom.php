@@ -95,15 +95,21 @@ class DistributionRoom
 
   public function asArray(?bool $deep = true)
   {
-    $headBandsAsArray = [];
-    foreach ($this->headBands as $headBand) {
-      $headBandsAsArray[] = $headBand->asArray($deep);
-    }
-
-    return [
+    $array = [
       'id' => $this->id,
       'label' => $this->label,
-      'headBands' => $headBandsAsArray
     ];
+
+
+    if ($deep) {
+      $headBandsAsArray = [];
+      foreach ($this->headBands as $headBand) {
+        $headBandsAsArray[] = $headBand->asArray(false);
+      }
+
+      $array['headBands'] = $headBandsAsArray;
+    }
+
+    return $array;
   }
 }
