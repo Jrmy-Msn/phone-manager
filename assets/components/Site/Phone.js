@@ -18,6 +18,8 @@ function Phone({
   phones,
   distributions,
   handlePhonesChange,
+  handlePhonesChangeInfo,
+  handlePhonesChangeError,
   loading,
 }) {
   // état de la valeur d'un champ avant modification
@@ -57,7 +59,9 @@ function Phone({
             value={params.value}
             noOptionsText="-----"
             options={distributions}
-            isOptionEqualToValue={(option, value) => option.id === value.id && option.label === value.label}
+            isOptionEqualToValue={(option, value) =>
+              option.id === value.id && option.label === value.label
+            }
             onChange={(event, newValue) => {
               params.api.setEditCellValue(
                 {
@@ -123,30 +127,63 @@ function Phone({
    * En cas d'erreur une notification est affichée, et les modifications sont annulées
    */
   const updatePhone = async (event) => {
+    // recherche du poste entrain d'être modifié
+    const phone = phones.find((v) => v.id === event.row.id)
+
+    // Initialisation des données de formulaire
     const formData = new FormData()
+
     try {
+      // Dans le cas ou la modification n'a pas été confirmée (sortie de la cellule)
+      // on met à jour l'affichage avec l'ancienne valeur
+      if (!valueModified) {
+        // mise à jour des données clientes par les anciennes valeurs
+        // annulation de la modification
+        handlePhonesChangeInfo(phone)
+        return
+      }
+
+      // Construction du formulaire de donnée pour le serveur
+      // Chaque champs est créé avec sa valeur.
+      // Si, le champs concerné est celui en cours de modification, c'est la valeur sauvegardée dans ("valueModified")
+      // qui est prise sinon c'est la valeur présente dans la cellule.
       grid.columns.forEach((column) => {
         // if (!grid.columns.find((v) => v.field === key)) continue
         const key = column.field
         const formField = `phone[${key}]`
         const value = key === event.field ? valueModified : event.row[key]
-        const formValue = key === 'distribution' ? value.id : value
+        // cas particulier pour le champs "distribution", la valeur est un objet, et il faut utilisé seulement l'id comme valeur pour le formulaire
+        const formValue = key === "distribution" ? value.id : value
         formField && formValue && formData.append(formField, formValue)
       })
+
+      // Envoi des donnée de formulaire au serveur pour mettre à jour le poste
       const { data } = await axios.post(
-        `${routes.timone_phone_update}/${valueModified.id}`,
+        `${routes.timone_phone_update}/${phone.id}`,
         formData
       )
+
+      // mise à jour des données clientes par les données seveurs
       handlePhonesChange(data)
     } catch (error) {
-      // retour arrière sur les données clientes
-      console.error(error)
+      let errors = []
+      errors.push(
+        error && error.message
+          ? error.message
+          : `Erreur lors de la modification du N° ${phone.number}`
+      )
       // cas d'une erreur avec le serveur
       if (error && error.response && error.response.data) {
-        handleConnectorChangeError(error.response.data)
+        if (Array.isArray(error.response.data)) errors = error.response.data
+        else if (error.response.data.detail)
+          errors = [error.response.data.detail]
       }
-      // autres cas
-      else if (error) handleConnectorChangeError(error.message)
+
+      // mise à jour avec l'ancienne valeur
+      if (phone) phone[event.field] = valueToModified
+
+      // mise à jour des données clientes par les anciennes valeurs
+      handlePhonesChangeError(phone, errors)
     } finally {
     }
   }
@@ -175,7 +212,7 @@ function Phone({
    * En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
    */
   const handlePhoneEditStop = (event) => {
-    if (valueModified) updatePhone(event)
+    updatePhone(event)
   }
 
   /**

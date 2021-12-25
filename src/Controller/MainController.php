@@ -68,9 +68,7 @@ class MainController extends AbstractController
       }
       return new JsonResponse($distributionsAsArray);
     } catch (Exception $exception) {
-      return new JsonResponse([
-        'message' => 'Erreur lors de la récupération de la liste des salles de répartiteur'
-      ], 400);
+      return new JsonResponse(['Erreur lors de la récupération de la liste des salles de répartiteur'], 400);
     }
   }
 
@@ -90,9 +88,7 @@ class MainController extends AbstractController
       }
       return new JsonResponse($phonesAsArray);
     } catch (Exception $exception) {
-      return new JsonResponse([
-        'message' => 'Erreur lors de la récupération de la liste des postes'
-      ], 400);
+      return new JsonResponse(['Erreur lors de la récupération de la liste des postes'], 400);
     }
   }
 
@@ -114,9 +110,7 @@ class MainController extends AbstractController
         $om->persist($phone);
         $om->flush();
       } catch (Exception $exception) {
-        return new JsonResponse([
-          'message' => 'Erreur lors de la mise à jour du poste ' . $phone
-        ], 400);
+        return new JsonResponse(['Erreur lors de la mise à jour du poste ' . $phone], 400);
       }
       return new JsonResponse($phone->asArray());
     }
@@ -144,9 +138,7 @@ class MainController extends AbstractController
         'connector' => $connector ? $connector->asArray() : null,
       ]);
     } catch (Exception $exception) {
-      return new JsonResponse([
-        'message' => 'Erreur lors du débranchement du poste ' . $phone
-      ], 400);
+      return new JsonResponse(['Erreur lors du débranchement du poste ' . $phone], 400);
     }
   }
 
@@ -172,9 +164,7 @@ class MainController extends AbstractController
           'connector' => $connector->asArray(),
         ]);
       } catch (Exception $exception) {
-        return new JsonResponse([
-          'message' => 'Erreur lors de la mise à jour du connecteur ' . $connector
-        ], 400);
+        return new JsonResponse(['Erreur lors de la mise à jour du connecteur ' . $connector], 400);
       }
     }
 

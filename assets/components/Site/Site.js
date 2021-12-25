@@ -1,5 +1,6 @@
 import axios from "axios"
 import React, { useEffect, useState } from "react"
+import { useSnackbar } from "notistack"
 import { NavLink } from "react-router-dom"
 import { Alert, Box, Typography, Snackbar, Tab } from "@mui/material"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
@@ -29,6 +30,7 @@ function Site({
   const [errorMessage, setErrorMessage] = useState("")
   // état d'un éventuel message de succès
   const [successMessage, setSuccessMessage] = useState("")
+  const { enqueueSnackbar } = useSnackbar()
 
   /**
    * Met à jour l'affichage du panneau en fonction de l'onglet sélectionné
@@ -38,11 +40,36 @@ function Site({
   }
 
   /**
-   * Met à jour à l'affichage, le/les connecteur(s) et le/les poste(s) avec les données fournies
+   * Met à jour à l'affichage, le poste avec les données fournies.
+   * Affiche eventuellement un message de réussite
    */
   const handlePhonesChange = (phone) => {
     setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
-    setSuccessMessage(`N° ${phone.number} mis à jour`)
+    enqueueSnackbar(`Mise à jour du N° ${phone.number} : RÉUSSIE`, {
+      variant: "success",
+    })
+  }
+
+  /**
+   * Met à jour à l'affichage, le poste avec les données fournies.
+   * Affiche éventuellement un message d'information
+   */
+  const handlePhonesChangeInfo = (phone) => {
+    setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
+    enqueueSnackbar(`Modification du N° ${phone.number} ANNULÉE`, {
+      variant: "info",
+    })
+  }
+
+  /**
+   * Met à jour à l'affichage, le poste avec les données fournies.
+   * Affiche éventuellement un message d"erreur
+   */
+  const handlePhonesChangeError = (phone, errors = []) => {
+    setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
+    if (errors) {
+      errors.forEach((v) => enqueueSnackbar(v, { variant: "error" }))
+    }
   }
 
   /**
@@ -188,21 +215,6 @@ function Site({
         >
           Gestion du site : {label}
         </Typography>
-        {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : ""}
-        {successMessage ? (
-          <Snackbar
-            open
-            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-            autoHideDuration={5000}
-            onClose={(event, reason) => setSuccessMessage("")}
-          >
-            <Alert severity="success" sx={{}}>
-              {successMessage}
-            </Alert>
-          </Snackbar>
-        ) : (
-          ""
-        )}
         <TabContext value={tab}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList onChange={handleTabChange}>
@@ -231,6 +243,8 @@ function Site({
               phones={phones}
               distributions={distributions}
               handlePhonesChange={handlePhonesChange}
+              handlePhonesChangeInfo={handlePhonesChangeInfo}
+              handlePhonesChangeError={handlePhonesChangeError}
               loading={loading}
             />
           </TabPanel>
