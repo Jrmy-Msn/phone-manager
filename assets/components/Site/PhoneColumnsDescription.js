@@ -65,14 +65,6 @@ export const PHONE_COLUMNS_DESCRIPTION = [
     align: "center",
   },
   {
-    field: "distribution",
-    editable: true,
-    filterable: false,
-    headerName: "Distribution",
-    width: 80,
-    align: "center",
-  },
-  {
     field: "distributionCard",
     editable: true,
     filterable: false,

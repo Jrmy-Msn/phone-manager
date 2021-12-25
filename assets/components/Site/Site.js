@@ -1,25 +1,13 @@
 import axios from "axios"
 import React, { useEffect, useState } from "react"
 import { NavLink } from "react-router-dom"
-import {
-  Alert,
-  Box,
-  Typography,
-  LinearProgress,
-  Snackbar,
-  Tab,
-  Autocomplete,
-  TextField,
-} from "@mui/material"
+import { Alert, Box, Typography, Snackbar, Tab } from "@mui/material"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
-import PhoneDisabledIcon from "@mui/icons-material/PhoneDisabled"
 import DnsIcon from "@mui/icons-material/Dns"
 import PhoneIcon from "@mui/icons-material/Phone"
-import { DataGrid, GridToolbar, GridOverlay } from "@mui/x-data-grid"
 import HeaderBar from "../HeaderBar/HeaderBar"
 import DistributionRoom from "./DistributionRoom"
-import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
-import { PHONE_COLUMNS_DESCRIPTION } from "./PhoneColumnsDescription"
+import Phone from "./Phone"
 import "./Site.scss"
 
 function Site({
@@ -29,16 +17,18 @@ function Site({
   routes = {},
   activeTab = "phone",
 }) {
-  const [phones, setPhones] = useState([])
-  const [distributions, setDistributions] = useState([])
-  const [tab, setTab] = useState(activeTab)
-  const [grid, setGrid] = useState({
-    columns: [],
-    rows: [],
-  })
-  const [errorMessage, setErrorMessage] = useState("")
-  const [successMessage, setSuccessMessage] = useState("")
+  // état de chargement des données du tableau de données
   const [loading, setLoadState] = useState(true)
+  // état de la liste des postes téléphoniques
+  const [phones, setPhones] = useState([])
+  // état de la liste des redistributeurs
+  const [distributions, setDistributions] = useState([])
+  // état de l'onglet séléectionné
+  const [tab, setTab] = useState(activeTab)
+  // état d'un éventuel message d'erreur
+  const [errorMessage, setErrorMessage] = useState("")
+  // état d'un éventuel message de succès
+  const [successMessage, setSuccessMessage] = useState("")
 
   /**
    * Met à jour l'affichage du panneau en fonction de l'onglet sélectionné
@@ -48,14 +38,15 @@ function Site({
   }
 
   /**
-   * Met à jour à l'affichage le poste qui à pour id "id" avec les données fournies "data"
+   * Met à jour à l'affichage, le/les connecteur(s) et le/les poste(s) avec les données fournies
    */
-  const handlePhoneChange = (id, data) => {
-    setPhones(phones.map((v) => (v.id === id ? data : v)))
+  const handlePhonesChange = (phone) => {
+    setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
+    setSuccessMessage(`N° ${phone.number} mis à jour`)
   }
 
   /**
-   * Met à jour à l'affichage, le connecteur qui à pour id "id" avec les données fournies "data"
+   * Met à jour à l'affichage, le/les connecteur(s) et le/les poste(s) avec les données fournies
    * "phone1" corespond au numéro de poste déjà présent sur un conecteur avant la modification
    * "phone2" corespond au numéro de poste souhaité, sur le connecteur
    * "connector1" correspond au connecteur en cours de modification
@@ -108,8 +99,8 @@ function Site({
           headBand1.connectors.map((c) =>
             c.id === connector1.id ? connector1 : c
           )
-        // si la donnée courante correspond au bandeau et redistributeur du "connector2"
-        // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector2"
+          // si la donnée courante correspond au bandeau et redistributeur du "connector2"
+          // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector2"
         } else if (distribution.id === distributionId2 && headBand2) {
           headBand2.connectors.map((c) =>
             c.id === connector2.id ? connector1 : c
@@ -118,21 +109,10 @@ function Site({
         return distribution
       })
     )
-  }
-
-  /**
-   * Met en forme les éventuelles erreurs lié à la modification d'un poste
-   */
-  const handlePhoneChangeError = (errors) => {
-    let message = (
-      <ul>
-        {errors.map((error, index) => (
-          <li key={index}>{error}</li>
-        ))}
-      </ul>
-    )
-
-    setErrorMessage(message)
+    let message = phone1 ? `N° ${phone1.number}` : ""
+    message += message && phone2 ? " et " : ""
+    message += phone2 ? `N° ${phone2.number}` : ""
+    setSuccessMessage(`${message} mis à jour`)
   }
 
   /**
@@ -171,75 +151,6 @@ function Site({
     }
   }
 
-  /**
-   * Met à jour un poste
-   * Toutes les données pour un poste sont récupérées et transformées en données de formulaire
-   * puis envoyées au serveur pour mise à jour de la base de donnée
-   * En retour, ce qui est enregistré en base de donnée est retourné est utilisé pour faire correspondre la donnée en base de donnée
-   * et ce qui est affiché
-   * En cas d'erreur une notification est affichée, et les modifications sont annulées
-   */
-  const updatePhone = async (event) => {
-    const formData = new FormData()
-    const cell = phones.find((v) => v.id === event.id)
-    try {
-      for (const [key, value] of Object.entries(cell)) {
-        if (!grid.columns.find((v) => v.field === key)) continue
-        const formField = `phone[${key === event.field ? event.field : key}]`
-        const formValue = key === event.field ? event.value : value
-        formField &&
-          formValue &&
-          ((key === event.field && event.value) || key !== event.field) &&
-          formData.append(formField, formValue)
-      }
-      const { data } = await axios.post(
-        `${routes.timone_phone_update}/${cell.id}`,
-        formData
-      )
-      handlePhoneChange(data.id, data)
-      setSuccessMessage(`N° ${data.number} mis à jour`)
-    } catch (error) {
-      if (error.response && error.response.data) {
-        handlePhoneChangeError(error.response.data)
-      } else if (error) {
-        handlePhoneChangeError(error.message)
-      }
-      handlePhoneChange(event.id, cell)
-    } finally {
-    }
-  }
-
-  /**
-   * Construit la grille de donnée en fonction de celle que l'on souhaite afficher (onglet...)
-   */
-  const constructGrid = () => {
-    let columns = [],
-      rows = []
-    columns = PHONE_COLUMNS_DESCRIPTION
-
-    rows =
-      phones.length === 0
-        ? []
-        : phones.map((phone) => {
-            return {
-              id: phone.id,
-              number: phone.number,
-              type: phone.type,
-              assignedTo: phone.assignedTo,
-              location: phone.location,
-              cluster: phone.cluster,
-              clusterCard: phone.clusterCard,
-              clusterChannel: phone.clusterChannel,
-              location: phone.location,
-              distribution: phone.distribution,
-              distributionCard: phone.distributionCard,
-              distributionChannel: phone.distributionChannel,
-              reserved: phone.reserved,
-            }
-          })
-    setGrid({ columns, rows })
-  }
-
   // --> Seulement au chargement de la page
   // Récupération des numéros de poste
   // Récupération des redistributeurs
@@ -251,31 +162,6 @@ function Site({
       await getDistributions()
     })()
   }, [])
-
-  // --> A chaque fois que la liste des postes change
-  // Mise à jour du tableau
-  useEffect(() => {
-    if (tab === "phone") constructGrid()
-  }, [tab, phones])
-
-  const CustomLoadingOverlay = () => {
-    return (
-      <GridOverlay>
-        <div style={{ position: "absolute", top: 0, width: "100%" }}>
-          <LinearProgress />
-        </div>
-      </GridOverlay>
-    )
-  }
-
-  const CustomNoRowsOverlay = () => {
-    return (
-      <GridOverlay sx={{ display: "flex", flexDirection: "column" }}>
-        <PhoneDisabledIcon sx={{ fontSize: "3rem" }} color="disabled" />
-        <Typography component="em">Aucun poste</Typography>
-      </GridOverlay>
-    )
-  }
 
   return (
     <Box
@@ -339,28 +225,14 @@ function Site({
             </TabList>
           </Box>
           <TabPanel sx={{ px: 0 }} value="phone">
-            <Box
-              sx={{
-                display: "flex",
-              }}
-            >
-              <div style={{ flexGrow: 1 }}>
-                <DataGrid
-                  loading={loading}
-                  rows={grid.rows}
-                  columns={grid.columns}
-                  disableSelectionOnClick
-                  autoHeight
-                  onCellEditCommit={updatePhone}
-                  localeText={GRID_FR_LOCALE_TEXT}
-                  components={{
-                    LoadingOverlay: CustomLoadingOverlay,
-                    Toolbar: GridToolbar,
-                    NoRowsOverlay: CustomNoRowsOverlay,
-                  }}
-                />
-              </div>
-            </Box>
+            <Phone
+              routes={routes}
+              tab={tab}
+              phones={phones}
+              distributions={distributions}
+              handlePhonesChange={handlePhonesChange}
+              loading={loading}
+            />
           </TabPanel>
           <TabPanel sx={{ px: 0 }} value="distribution">
             <DistributionRoom

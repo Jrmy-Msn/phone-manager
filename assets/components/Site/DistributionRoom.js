@@ -295,37 +295,31 @@ function DistributionRoom({
     }
   }
 
+  /**
+   * Avant la modification de la cellule, nous en gardons la valeur d'origine pour permetttre
+   * un retour en arrire en casd'annulation de l'opération. 
+   */
   const handleDistributionEditStart = (event) => {
-    console.log(
-      "🚀 ~ file: DistributionRoom.js ~ line 152 ~ DistributionRoom ~ handleDistributionEditStart ~ event",
-      event
-    )
-    // Avant la modification de la cellule, nous en gardons la valeur d'origine pour permetttre
-    // un retour en arrire en casd'annulation de l'opération.
     setValueToModified(event.value)
   }
 
+  /**
+   * Dans ce cas, la validation par la touche "ENTREE" n'a pas été effectuée, cela revient à annuler l'opération
+   * en quittant la cellule sans confirmation.
+   */
   const handleDistributionEditCommit = (event) => {
-    console.log(
-      "🚀 ~ file: DistributionRoom.js ~ line 161 ~ DistributionRoom ~ handleDistributionEditCommit ~ event",
-      event
-    )
-    // Dans ce cas, la validation par la touche "ENTREE" n'a pas été effectuée, cela revient à annuler l'opération
-    // en quittant la cellule sans confirmation.
     setValueModified(event.cellMode ? undefined : event.value)
   }
 
+  /**
+   * En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
+   */
   const handleDistributionEditStop = (event) => {
-    console.log(
-      "🚀 ~ file: DistributionRoom.js ~ line 168 ~ DistributionRoom ~ handleDistributionEditStop ~ event",
-      event
-    )
-    // En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
     if (valueModified) updateDistribution(event)
   }
 
   /**
-   * Met en forme les éventuelles erreurs lié à la modification d'un poste
+   * Met en forme les éventuelles erreurs lié à la modification d'un redistributeur
    */
   const handleConnectorChangeError = (errors) => {
     let message = (
@@ -343,7 +337,7 @@ function DistributionRoom({
   // Mise à jour du tableau
   useEffect(() => {
     if (tab === "distribution") constructGrid()
-  }, [tab, distributionHeadBandOpen, distributions])
+  }, [tab, distributionHeadBandOpen, distributions, phones])
 
   return (
     <Box

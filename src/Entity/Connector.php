@@ -103,7 +103,7 @@ class Connector
     ];
 
     if ($deep) {
-      if ($this->phone) $array['phone'] = $this->phone->asArray(false);
+      // if ($this->phone) $array['phone'] = $this->phone->asArray(false);
       $array['headBand'] = $this->headBand->asArray(false);
     }
 

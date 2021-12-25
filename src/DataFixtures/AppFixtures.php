@@ -47,17 +47,12 @@ class AppFixtures extends Fixture
     $manager->flush();
 
     // PHONE
-    function generateRandomString($length = 1)
+    $getDistributionRoomFn = function ($headBandIndex) use ($room1, $room2, $room3)
     {
-      $characters = 'ABCD';
-      $number = random_int(1, 8);
-      $charactersLength = strlen($characters);
-      $randomString = '';
-      for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[rand(0, $charactersLength - 1)];
-      }
-      return $randomString . $number;
-    }
+      if ($headBandIndex === 0 || $headBandIndex === 1) return $room1;
+      if ($headBandIndex === 2 || $headBandIndex === 3) return $room2;
+      return $room3;
+    };
 
     $aNumbers = [];
     for ($i = 0; $i < 10; $i++) {
@@ -68,11 +63,10 @@ class AppFixtures extends Fixture
       $randCluster = random_int(1, 4);
       $randClusterCard = random_int(1, 4);
       $randClusterChannel = random_int(1, 30);
-      $randDistribution = generateRandomString();
       $randDistributionCard = random_int(1, 4);
       $randDistributionChannel = random_int(1, 8);
       $randHeadBand = random_int(0, 4);
-      $randHeadBand = $headbands[$randHeadBand];
+      $headBand = $headbands[$randHeadBand];
 
       $number = random_int(6000, 6200);
       while (array_search($number, $aNumbers)) {
@@ -83,8 +77,8 @@ class AppFixtures extends Fixture
       $phone->setLocation($randLocation);
       $phone->setAssignedTo($randAssignedTo);
       $phone->clusterFactory($randCluster, $randClusterCard, $randClusterChannel);
-      $phone->distributionFactory($randDistribution, $randDistributionCard, $randDistributionChannel);
-      $phone->connectorFactory($randHeadBand, $i);
+      $phone->distributionFactory($getDistributionRoomFn($randHeadBand), $randDistributionCard, $randDistributionChannel);
+      $phone->connectorFactory($headBand, $i);
       $phone->setType($randType);
       $manager->persist($phone);
     }

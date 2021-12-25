@@ -49,7 +49,7 @@ class Phone
   private $clusterCard;
 
   /**
-   * @ORM\Column(type="string", length=255, nullable=true)
+   * @ORM\ManyToOne(targetEntity="App\Entity\DistributionRoom")
    */
   private $distribution;
 
@@ -170,12 +170,12 @@ class Phone
     return $this;
   }
 
-  public function getDistribution(): ?string
+  public function getDistribution(): ?DistributionRoom
   {
     return $this->distribution;
   }
 
-  public function setDistribution(?string $distribution): self
+  public function setDistribution(?DistributionRoom $distribution): self
   {
     $this->distribution = $distribution;
 
@@ -261,7 +261,7 @@ class Phone
     $this->clusterChannel = $channel;
   }
 
-  public function distributionFactory(string $distribution, int $card, int $channel)
+  public function distributionFactory(DistributionRoom $distribution, int $card, int $channel)
   {
     $this->distribution = $distribution;
     $this->distributionCard = $card;
@@ -277,21 +277,21 @@ class Phone
   public function asArray(?bool $deep = true)
   {
     return [
-      'id' => $this->getId(),
-      'assignedTo' => $this->getAssignedTo(),
-      'number' => $this->getNumber(),
-      'reserved' => $this->getReserved(),
-      'cluster' => $this->getCluster(),
-      'clusterCard' => $this->getClusterCard(),
-      'clusterChannel' => $this->getClusterChannel(),
-      'distribution' => $this->getDistribution(),
-      'distributionCard' => $this->getDistributionCard(),
-      'distributionChannel' => $this->getDistributionChannel(),
-      'type' => $this->getType(),
-      'location' => $this->getLocation(),
+      'id' => $this->id,
+      'assignedTo' => $this->assignedTo,
+      'number' => $this->number,
+      'reserved' => $this->reserved,
+      'cluster' => $this->cluster,
+      'clusterCard' => $this->clusterCard,
+      'clusterChannel' => $this->clusterChannel,
+      'distribution' => $this->distribution->asArray(false),
+      'distributionCard' => $this->distributionCard,
+      'distributionChannel' => $this->distributionChannel,
+      'type' => $this->type,
+      'location' => $this->location,
       'connector' =>
-      $this->getConnector()
-        ? $this->getConnector()->asArray($deep)
+      $this->connector
+        ? $this->connector->asArray(false)
         : null,
       'socket' => $this->getSocket(),
     ];
