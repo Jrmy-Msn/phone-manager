@@ -167,16 +167,14 @@ function Phone({
       handlePhonesChange(data)
     } catch (error) {
       let errors = []
-      errors.push(
-        error && error.message
-          ? error.message
-          : `Erreur lors de la modification du N° ${phone.number}`
-      )
+      
       // cas d'une erreur avec le serveur
       if (error && error.response && error.response.data) {
         if (Array.isArray(error.response.data)) errors = error.response.data
         else if (error.response.data.detail)
-          errors = [error.response.data.detail]
+          errors.push([error.response.data.detail])
+      } else if (error && error.message) {
+        errors.push(error.message)
       }
 
       // mise à jour avec l'ancienne valeur

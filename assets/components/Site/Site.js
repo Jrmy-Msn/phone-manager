@@ -8,6 +8,7 @@ import DnsIcon from "@mui/icons-material/Dns"
 import PhoneIcon from "@mui/icons-material/Phone"
 import HeaderBar from "../HeaderBar/HeaderBar"
 import DistributionRoom from "./DistributionRoom"
+import Notification from "./Notification"
 import Phone from "./Phone"
 import "./Site.scss"
 
@@ -45,9 +46,14 @@ function Site({
    */
   const handlePhonesChange = (phone) => {
     setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
-    enqueueSnackbar(`Mise à jour du N° ${phone.number} : RÉUSSIE`, {
-      variant: "success",
-    })
+    enqueueSnackbar(
+      <Notification
+        message={`Mise à jour du N° ${phone.number} : <strong>RÉUSSIE</strong>`}
+      ></Notification>,
+      {
+        variant: "success",
+      }
+    )
   }
 
   /**
@@ -56,9 +62,14 @@ function Site({
    */
   const handlePhonesChangeInfo = (phone) => {
     setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
-    enqueueSnackbar(`Modification du N° ${phone.number} ANNULÉE`, {
-      variant: "info",
-    })
+    enqueueSnackbar(
+      <Notification
+        message={`Modification du N° ${phone.number} : <strong>ANNULÉE</strong>`}
+      ></Notification>,
+      {
+        variant: "info",
+      }
+    )
   }
 
   /**
@@ -68,6 +79,12 @@ function Site({
   const handlePhonesChangeError = (phone, errors = []) => {
     setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
     if (errors) {
+      enqueueSnackbar(
+        `Modification du N° ${phone.number} : <strong>ECHÈC</strong>`,
+        {
+          variant: "error",
+        }
+      )
       errors.forEach((v) => enqueueSnackbar(v, { variant: "error" }))
     }
   }

@@ -3,7 +3,6 @@ import ReactDOM from "react-dom"
 import { BrowserRouter as Router } from "react-router-dom"
 import { createTheme, ThemeProvider } from "@mui/material/styles"
 import CloseIcon from "@mui/icons-material/Close"
-import { Button } from "@mui/material"
 import { SnackbarProvider } from "notistack"
 import { frFR } from "@mui/material/locale"
 import App from "./components/App/App"
@@ -30,15 +29,20 @@ ReactDOM.render(
   <Router>
     <ThemeProvider theme={theme}>
       <SnackbarProvider
+        sx={{
+          '& .SnackbarItem-message': {
+            width: 1/1
+          }
+        }}
         maxSnack={5}
-        autoHideDuration={5000}
+        autoHideDuration={500000}
         ref={notistackRef}
-        action={(key) => (
-          <CloseIcon
-            sx={{ cursor: "pointer", color: "muted" }}
-            onClick={onClickDismiss(key)}
-          />
-        )}
+        // action={(key) => (
+        //   <CloseIcon
+        //     sx={{ cursor: "pointer", color: "muted" }}
+        //     onClick={onClickDismiss(key)}
+        //   />
+        // )}
       >
         <App />
       </SnackbarProvider>
