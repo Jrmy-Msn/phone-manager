@@ -174,7 +174,7 @@ function Site({
         ...messages,
         [
           `N° ${fromPhone.number} :`,
-          `${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &rArr; ${toConnector.number} &#8652; &#9723;`,
+          `${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &rArr; ${toConnector.number} &#9635; &#9723;`,
         ],
       ]
     }
@@ -189,7 +189,7 @@ function Site({
           ...messages,
           [
             `N° ${toPhone.number} :`,
-            `${fromConnector.headBand.distributionRoom.label} &ndash; ${fromConnector.headBand.label} &rArr; ${fromConnector.number} &#8652; ${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &rArr; ${toConnector.number}`,
+            `${fromConnector.headBand.distributionRoom.label} &ndash; ${fromConnector.headBand.label} &#9635; ${fromConnector.number} &rArr; ${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &#9635; ${toConnector.number}`,
           ],
         ]
       } else {
@@ -197,7 +197,7 @@ function Site({
           ...messages,
           [
             `N° ${toPhone.number} :`,
-            `&#9723; &#8652; ${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &rArr; ${toConnector.number}`,
+            `&#9723; &rArr; ${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &#9635; ${toConnector.number}`,
           ],
         ]
       }

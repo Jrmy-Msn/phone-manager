@@ -1,12 +1,14 @@
 import axios from "axios"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
   Box,
   Typography,
   LinearProgress,
   Autocomplete,
   TextField,
+  Backdrop,
 } from "@mui/material"
+import CircularProgress from "@mui/material/CircularProgress"
 import PhoneDisabledIcon from "@mui/icons-material/PhoneDisabled"
 import { DataGrid, GridToolbar, GridOverlay } from "@mui/x-data-grid"
 import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
@@ -26,6 +28,8 @@ function Phone({
   const [valueToModified, setValueToModified] = useState()
   // état de la valeur d'un champ après modification
   const [valueModified, setValueModified] = useState()
+  // état du backdrop lors des modifications
+  const [backdropOpen, setBackdropOpen] = useState(false)
   // état du tableau de données
   const [grid, setGrid] = useState({
     columns: [],
@@ -127,6 +131,9 @@ function Phone({
    * En cas d'erreur une notification est affichée, et les modifications sont annulées
    */
   const updatePhone = async (event) => {
+    // Blocage des intéractions le temps que les modifications soient prises en compte
+    setBackdropOpen(true)
+
     try {
       // recherche du poste entrain d'être modifié
       const phone = phones.find((v) => v.id === event.row.id)
@@ -169,7 +176,7 @@ function Phone({
       handlePhonesChange(data)
     } catch (error) {
       let errors = []
-      
+
       // cas d'une erreur avec le serveur
       if (error && error.response && error.response.data) {
         if (Array.isArray(error.response.data)) errors = error.response.data
@@ -185,6 +192,8 @@ function Phone({
       // mise à jour des données clientes par les anciennes valeurs
       handlePhonesChangeError(phone, errors)
     } finally {
+      // Blocage des intéractions
+      setBackdropOpen(false)
     }
   }
 
@@ -243,9 +252,16 @@ function Phone({
   return (
     <Box
       sx={{
+        position: "relative",
         display: "flex",
       }}
     >
+      <Backdrop
+        sx={{ position: "absolute", color: "#fff", zIndex: 1000 }}
+        open={backdropOpen}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
           loading={loading}

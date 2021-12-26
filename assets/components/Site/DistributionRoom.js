@@ -13,9 +13,11 @@ import {
   IconButton,
   Autocomplete,
   TextField,
+  Backdrop,
 } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
+import CircularProgress from "@mui/material/CircularProgress"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 
@@ -103,6 +105,8 @@ function DistributionRoom({
   const [valueToModified, setValueToModified] = useState()
   // état de la valeur d'un connecteur après modification
   const [valueModified, setValueModified] = useState()
+  // état du backdrop lors des modifications
+  const [backdropOpen, setBackdropOpen] = useState(false)
   // état du tableau de donnée actif
   const [grid, setGrid] = useState({
     columns: [],
@@ -229,10 +233,15 @@ function DistributionRoom({
    * En cas d'erreur une notification est affichée, et les modifications sont annulées.
    */
   const updateDistribution = async (event) => {
-    const formData = new FormData()
+    // Blocage des intéractions le temps que les modifications soient prises en compte
+    setBackdropOpen(true)
+
     let fromPhone, toPhone, fromConnector, toConnector
 
     try {
+      // Initialisation des données de formulaire
+      const formData = new FormData()
+
       // récpération du bandeau ouvert (qui est entrain d'être modifié)
       const { distribution, headBand } = getCurrentDistributionHeadBand()
       if (!headBand)
@@ -317,6 +326,9 @@ function DistributionRoom({
         toPhone,
         toConnector
       )
+    } finally {
+      // Blocage des intéractions
+      setBackdropOpen(false)
     }
   }
 
@@ -383,9 +395,16 @@ function DistributionRoom({
   return (
     <Box
       sx={{
+        position: "relative",
         display: "flex",
       }}
     >
+      <Backdrop
+        sx={{ position: "absolute", color: "#fff", zIndex: 1000 }}
+        open={backdropOpen}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <div style={{ flexGrow: 1 }}>
         <TableContainer component={Paper}>
           <Table aria-label="collapsible table">
