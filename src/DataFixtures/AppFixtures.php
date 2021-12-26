@@ -58,7 +58,7 @@ class AppFixtures extends Fixture
     for ($i = 0; $i < 10; $i++) {
       $randReserved = (bool)random_int(0, 1);
       $randLocation = (bool)random_int(0, 1) ? 'LOGT' : 'BUR';
-      $randType = (bool)random_int(0, 1) ? 'ANAMOGIQUE' : 'NUMERIQUE';
+      $randType = (bool)random_int(0, 1) ? 'ANALOGIQUE' : 'NUMERIQUE';
       $randAssignedTo = (bool)random_int(0, 1) ? 'EM REGIONAL' : 'AUTRE';
       $randCluster = random_int(1, 4);
       $randClusterCard = random_int(1, 4);
