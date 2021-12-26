@@ -248,7 +248,9 @@ function DistributionRoom({
         throw new Error("Aucun bandeau n'est en cours de modification")
 
       // récupération du connecteur à modifier
+      // toConnector = headBand.connectors[Number(event.field)]
       toConnector = headBand.connectors[Number(event.field)]
+      toConnector.headBand = headBand
       if (!toConnector) throw new Error("Le connecteur à modifier n'existe pas")
 
       // Dans le cas ou la modification n'a pas été confirmée (sortie de la cellule)

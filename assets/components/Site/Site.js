@@ -174,7 +174,7 @@ function Site({
         ...messages,
         [
           `N° ${fromPhone.number} :`,
-          `${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &rArr; ${toConnector.number} &#9635; &#9723;`,
+          `${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &#9635; ${toConnector.number} &rArr; &#9723;`,
         ],
       ]
     }
@@ -255,6 +255,38 @@ function Site({
         variant: "error",
       }
     )
+    if (fromConnector && toPhone) {
+      message = [
+        `N° ${toPhone.number} :`,
+        `&#8618 ${fromConnector.headBand.distributionRoom.label} &ndash; ${fromConnector.headBand.label} &#9635; ${fromConnector.number}`,
+      ]
+      enqueueSnackbar(
+        <Notification
+          message={message}
+          notice={`la restauration des données ci-dessus doit être faite manuellement`}
+        ></Notification>,
+        {
+          variant: "warning",
+          autoHideDuration: null,
+        }
+      )
+    }
+    if (fromPhone && toConnector) {
+      message = [
+        `N° ${fromPhone.number} :`,
+        `&#8618 ${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &#9635; ${toConnector.number}`,
+      ]
+      enqueueSnackbar(
+        <Notification
+          message={message}
+          notice={`la restauration des données ci-dessus doit être faite manuellement`}
+        ></Notification>,
+        {
+          variant: "warning",
+          autoHideDuration: null,
+        }
+      )
+    }
   }
 
   /**
