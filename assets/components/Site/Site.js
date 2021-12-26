@@ -27,10 +27,6 @@ function Site({
   const [distributions, setDistributions] = useState([])
   // état de l'onglet séléectionné
   const [tab, setTab] = useState(activeTab)
-  // état d'un éventuel message d'erreur
-  const [errorMessage, setErrorMessage] = useState("")
-  // état d'un éventuel message de succès
-  const [successMessage, setSuccessMessage] = useState("")
   const { enqueueSnackbar } = useSnackbar()
 
   /**
@@ -80,83 +76,185 @@ function Site({
     setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
     if (errors) {
       enqueueSnackbar(
-        `Modification du N° ${phone.number} : <strong>ECHÈC</strong>`,
+        <Notification
+          message={`Modification du N° ${phone.number} : <strong>ECHOUÉE</strong>`}
+        ></Notification>,
         {
           variant: "error",
         }
       )
-      errors.forEach((v) => enqueueSnackbar(v, { variant: "error" }))
+      errors.forEach((v) =>
+        enqueueSnackbar(<Notification message={v}></Notification>, {
+          variant: "error",
+        })
+      )
     }
   }
 
   /**
    * Met à jour à l'affichage, le/les connecteur(s) et le/les poste(s) avec les données fournies
-   * "phone1" corespond au numéro de poste déjà présent sur un conecteur avant la modification
-   * "phone2" corespond au numéro de poste souhaité, sur le connecteur
-   * "connector1" correspond au connecteur en cours de modification
-   * "connector2" correspond au connecteur du nouveau numéro de poste souhaité
-   * "phone1" peut être "undefined" si le nouveu numéro est inséré sur un connecteur vide
-   * "conector2" peut être "undefined" si le nouveu numéro n'était déjà pas connecté
+   * "fromPhone" corespond au numéro de poste déjà présent sur un conecteur avant la modification
+   * "toPhone" corespond au numéro de poste souhaité, sur le connecteur
+   * "fromConnector" correspond au connecteur en cours de modification
+   * "toConnector" correspond au connecteur du nouveau numéro de poste souhaité
+   * "fromPhone" peut être "undefined" si le nouveu numéro est inséré sur un connecteur vide
+   * "toConnector" peut être "undefined" si le nouveu numéro n'était déjà pas connecté
    * La valeur des 4 arguments est obtenue à partir du serveur
    */
-  const handleDistributionsChange = (
-    phone1,
-    phone2,
-    connector1,
-    connector2
+  const handleDistributionsChangeCallback = (
+    fromPhone,
+    fromConnector,
+    toPhone,
+    toConnector
   ) => {
     // mise à jour des données clientes des numéros de poste
     setPhones(
       phones.map((v) => {
-        if (phone1 && v.id === phone1.id) return phone1
-        if (phone2 && v.id === phone2.id) return phone2
+        if (fromPhone && v.id === fromPhone.id) return fromPhone
+        if (toPhone && v.id === toPhone.id) return toPhone
         return v
       })
     )
 
-    // récupération des du redistributeur du "connector1"
+    // récupération des du redistributeur du "fromConnector"
     const distributionId1 =
-      connector1 && connector1.headBand.distributionRoom.id
-    // récupération des du bandeau du "connector1"
-    const headBandId1 = connector1 && connector1.headBand.id
-    // récupération des du redistributeur du "connector2"
+      fromConnector && fromConnector.headBand.distributionRoom.id
+    // récupération des du bandeau du "fromConnector"
+    const headBandId1 = fromConnector && fromConnector.headBand.id
+    // récupération des du redistributeur du "toConnector"
     const distributionId2 =
-      connector2 && connector2.headBand.distributionRoom.id
-    // récupération des du bandeau du "connector2"
-    const headBandId2 = connector2 && connector2.headBand.id
+      toConnector && toConnector.headBand.distributionRoom.id
+    // récupération des du bandeau du "toConnector"
+    const headBandId2 = toConnector && toConnector.headBand.id
 
     // mise à jour des données clientes des redistributeurs
     setDistributions(
       distributions.map((distribution) => {
-        // recherche du bandeau du "connector1" dans les données clientes
+        // recherche du bandeau du "fromConnector" dans les données clientes
         const headBand1 = distribution.headBands.find(
           (h) => h.id === headBandId1
         )
-        // recherche du bandeau du "connector2" dans les données clientes
+        // recherche du bandeau du "toConnector" dans les données clientes
         const headBand2 = distribution.headBands.find(
           (h) => h.id === headBandId2
         )
 
-        // si la donnée courante correspond au bandeau et redistributeur du "connector1"
-        // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector1"
+        // si la donnée courante correspond au bandeau et redistributeur du "fromConnector"
+        // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "fromConnector"
         if (distribution.id === distributionId1 && headBand1) {
           headBand1.connectors.map((c) =>
-            c.id === connector1.id ? connector1 : c
+            c.id === fromConnector.id ? fromConnector : c
           )
-          // si la donnée courante correspond au bandeau et redistributeur du "connector2"
-          // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector2"
+          // si la donnée courante correspond au bandeau et redistributeur du "toConnector"
+          // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "toConnector"
         } else if (distribution.id === distributionId2 && headBand2) {
           headBand2.connectors.map((c) =>
-            c.id === connector2.id ? connector1 : c
+            c.id === toConnector.id ? fromConnector : c
           )
         }
+        // la valuer modifiée ou non est retournée
         return distribution
       })
     )
-    let message = phone1 ? `N° ${phone1.number}` : ""
-    message += message && phone2 ? " et " : ""
-    message += phone2 ? `N° ${phone2.number}` : ""
-    setSuccessMessage(`${message} mis à jour`)
+  }
+
+  /**
+   * Met à jour à l'affichage, le/les connecteur(s) et le/les poste(s) avec les données fournies lors d'un succès
+   */
+  const handleDistributionsChange = (...args) => {
+    handleDistributionsChangeCallback(...args)
+    let [fromPhone, fromConnector, toPhone, toConnector] = args
+    let messages = []
+
+    // Affichage d'un résumé des optérations pour le poste déjà présent sur la connecteur à modifier
+    // e.g : N XXXXX :
+    // SRx - X port x => SRx - X port x
+    if (fromPhone) {
+      messages = [
+        ...messages,
+        [
+          `N° ${fromPhone.number} :`,
+          `${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &rArr; ${toConnector.number} &#8652; &#9723;`,
+        ],
+      ]
+    }
+
+    // Affichage d'un résumé des optérations pour le poste à insérer sur la connecteur à modifier
+    // e.g : N XXXXX :
+    // SRx - X port x => SRx - X port x
+    // SRy - Y port y => SRy - Y port y
+    if (toPhone) {
+      if (fromConnector) {
+        messages = [
+          ...messages,
+          [
+            `N° ${toPhone.number} :`,
+            `${fromConnector.headBand.distributionRoom.label} &ndash; ${fromConnector.headBand.label} &rArr; ${fromConnector.number} &#8652; ${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &rArr; ${toConnector.number}`,
+          ],
+        ]
+      } else {
+        messages = [
+          ...messages,
+          [
+            `N° ${toPhone.number} :`,
+            `&#9723; &#8652; ${toConnector.headBand.distributionRoom.label} &ndash; ${toConnector.headBand.label} &rArr; ${toConnector.number}`,
+          ],
+        ]
+      }
+    }
+    messages.forEach((msg) => {
+      enqueueSnackbar(<Notification message={msg}></Notification>, {
+        variant: "success",
+      })
+    })
+  }
+
+  /**
+   * Met à jour à l'affichage, le poste avec les données fournies.
+   * Affiche éventuellement un message d'information
+   */
+  const handleDistributionsChangeInfo = (distribution, headBand, connector) => {
+    // mise à jour des données clientes du redistributeur
+    setDistributions(
+      distributions.map((d) => {
+        // si la donnée courante correspond au bandeau et redistributeur du "connector"
+        // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector"
+        if (d.id === distribution.id && headBand) {
+          headBand.connectors.map((c) =>
+            c.id === connector.id ? connector : c
+          )
+        }
+        // la valuer modifiée ou non est retournée
+        return d
+      })
+    )
+    enqueueSnackbar(
+      <Notification
+        message={`Modification de ${distribution.label} &ndash; ${headBand.label} &rArr; ${connector.number}  : <strong>ANNULÉE</strong>`}
+      ></Notification>,
+      {
+        variant: "info",
+      }
+    )
+  }
+
+  /**
+   * Met à jour à l'affichage, le/les connecteur(s) et le/les poste(s) avec les données fournies pour un échec
+   */
+  const handleDistributionsChangeError = (...args) => {
+    handleDistributionsChangeCallback(...args)
+    let [fromPhone, fromConnector, toPhone, toConnector] = args
+    let message = fromPhone ? `N° ${fromPhone.number}` : ""
+    message += message && toPhone ? " et " : ""
+    message += toPhone ? `N° ${toPhone.number}` : ""
+    enqueueSnackbar(
+      <Notification
+        message={`Modification de ${message} : <strong>ÉCHOUÉE</strong>`}
+      ></Notification>,
+      {
+        variant: "error",
+      }
+    )
   }
 
   /**
@@ -272,6 +370,8 @@ function Site({
               phones={phones}
               distributions={distributions}
               handleDistributionsChange={handleDistributionsChange}
+              handleDistributionsChangeInfo={handleDistributionsChangeInfo}
+              handleDistributionsChangeError={handleDistributionsChangeError}
             />
           </TabPanel>
         </TabContext>

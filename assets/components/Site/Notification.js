@@ -4,7 +4,6 @@ import CloseIcon from "@mui/icons-material/Close"
 import { Box, Button } from "@mui/material"
 
 function Notification({ message }) {
-
   return (
     <Box
       sx={{
@@ -15,11 +14,23 @@ function Notification({ message }) {
         justifyContent: "space-between",
       }}
     >
-      <span>{message}</span>
-      <CloseIcon
-        sx={{ cursor: "pointer", color: "muted" }}
-        onClick={() => { this.props.closeSnackbar(key) }}
-      />
+      {Array.isArray(message) ? (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          {message.map((m, i) => {
+            if (i === 0)
+              return <u key={i} dangerouslySetInnerHTML={{ __html: m }}></u>
+            return <span key={i} dangerouslySetInnerHTML={{ __html: m }} />
+          })}
+        </Box>
+      ) : (
+        <span dangerouslySetInnerHTML={{ __html: message }} />
+      )}
     </Box>
   )
 }

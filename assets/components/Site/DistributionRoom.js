@@ -94,6 +94,8 @@ function DistributionRoom({
   distributions,
   routes,
   handleDistributionsChange,
+  handleDistributionsChangeInfo,
+  handleDistributionsChangeError,
 }) {
   // état du bandeau actif
   const [distributionHeadBandOpen, setDistributionHeadBandOpen] = useState()
@@ -112,20 +114,22 @@ function DistributionRoom({
    * Peut renvoyer "undefined" si aucun bandeau n'est actif
    */
   const getCurrentDistributionHeadBand = () => {
-    if (!distributionHeadBandOpen) return
+    let distribution, headBand
 
-    const distribution = distributions.find(
-      (distribution) =>
-        distribution.id === distributionHeadBandOpen.distributionId
-    )
+    if (distributionHeadBandOpen) {
+      distribution = distributions.find(
+        (distribution) =>
+          distribution.id === distributionHeadBandOpen.distributionId
+      )
 
-    if (!distribution) return
+      if (distribution) {
+        headBand = distribution.headBands.find(
+          (headBand) => headBand.id === distributionHeadBandOpen.headBandId
+        )
+      }
+    }
 
-    const headBand = distribution.headBands.find(
-      (headBand) => headBand.id === distributionHeadBandOpen.headBandId
-    )
-
-    return headBand
+    return { distribution, headBand }
   }
 
   /**
@@ -136,7 +140,7 @@ function DistributionRoom({
   const constructGrid = () => {
     let columns = [],
       rows = []
-    const headBand = getCurrentDistributionHeadBand()
+    const { headBand } = getCurrentDistributionHeadBand()
 
     if (!headBand) return
 
@@ -226,56 +230,93 @@ function DistributionRoom({
    */
   const updateDistribution = async (event) => {
     const formData = new FormData()
-    let phone1, phone2, connector1, connector2
+    let fromPhone, toPhone, fromConnector, toConnector
 
     try {
       // récpération du bandeau ouvert (qui est entrain d'être modifié)
-      const headBand = getCurrentDistributionHeadBand()
+      const { distribution, headBand } = getCurrentDistributionHeadBand()
       if (!headBand)
         throw new Error("Aucun bandeau n'est en cours de modification")
 
       // récupération du connecteur à modifier
-      const connector = headBand.connectors[Number(event.field)]
-      if (!connector) throw new Error("Le connecteur à modifier n'existe pas")
+      toConnector = headBand.connectors[Number(event.field)]
+      if (!toConnector) throw new Error("Le connecteur à modifier n'existe pas")
+
+      // Dans le cas ou la modification n'a pas été confirmée (sortie de la cellule)
+      // on met à jour l'affichage avec l'ancienne valeur
+      if (!valueModified) {
+        // mise à jour des données clientes par les anciennes valeurs
+        // annulation de la modification
+        handleDistributionsChangeInfo(distribution, headBand, toConnector)
+        return
+      }
 
       // Si une valeur est déjà présente => le poste correspondant est "débranché" (plus de liaison à ce connecteur)
       if (valueToModified) {
-        const { data } = await axios.post(
-          `${routes.timone_phone_unplug}/${valueToModified.id}`
-        )
-        phone1 = data.phone
-        connector1 = data.connector
+        try {
+          const { data } = await axios.post(
+            `${routes.timone_phone_unplug}/${valueToModified.id}`
+          )
+          fromPhone = data.phone
+          toConnector = data.connector
+        } catch (error) {
+          handleDistributionsChangeError(
+            valueToModified,
+            valueToModified.connector
+          )
+          return
+        }
       }
 
       // Si le poste de remplacement est déjà "branché" ailleurs, on le "débranche" (plus de liaison à ce connecteur)
-      if (valueModified.connector) {
-        const { data } = await axios.post(
-          `${routes.timone_phone_unplug}/${valueModified.id}`
-        )
-        phone2 = data.phone
-        connector2 = data.connector
+      if (valueModified) {
+        try {
+          const { data } = await axios.post(
+            `${routes.timone_phone_unplug}/${valueModified.id}`
+          )
+          toPhone = data.phone
+          fromConnector = data.connector
+        } catch (error) {
+          handleDistributionsChangeError(
+            valueToModified,
+            valueToModified.connector,
+            valueModified,
+            valueModified.connector
+          )
+          return
+        }
       }
 
       // mise à jour du nouveau poste choisit pour le connecteur
       valueModified && formData.append(`connector[phone]`, valueModified.id)
       const { data } = await axios.post(
-        `${routes.timone_connector_update}/${connector.id}`,
+        `${routes.timone_connector_update}/${toConnector.id}`,
         formData
       )
-      phone2 = data.phone
-      connector1 = data.connector
+      toPhone = data.phone
+      toConnector = data.connector
 
       // mise à jour des données clientes par les données seveurs
-      handleDistributionsChange(phone1, phone2, connector1, connector2)
+      handleDistributionsChange(fromPhone, fromConnector, toPhone, toConnector)
     } catch (error) {
-      // retour arrière sur les données clientes
-      console.error(error)
+      let errors = []
+
       // cas d'une erreur avec le serveur
       if (error && error.response && error.response.data) {
-        handleConnectorChangeError(error.response.data)
+        if (Array.isArray(error.response.data)) errors = error.response.data
+        else if (error.response.data.detail)
+          errors.push([error.response.data.detail])
+      } else if (error && error.message) {
+        errors.push(error.message)
       }
-      // autres cas
-      else if (error) handleConnectorChangeError(error.message)
+
+      // mise à jour des données clientes par les anciennes valeurs
+      handleDistributionsChangeError(
+        fromPhone,
+        fromConnector,
+        toPhone,
+        toConnector
+      )
     }
   }
 
@@ -297,7 +338,7 @@ function DistributionRoom({
 
   /**
    * Avant la modification de la cellule, nous en gardons la valeur d'origine pour permetttre
-   * un retour en arrire en casd'annulation de l'opération. 
+   * un retour en arrire en casd'annulation de l'opération.
    */
   const handleDistributionEditStart = (event) => {
     setValueToModified(event.value)
@@ -315,7 +356,7 @@ function DistributionRoom({
    * En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
    */
   const handleDistributionEditStop = (event) => {
-    if (valueModified) updateDistribution(event)
+    updateDistribution(event)
   }
 
   /**

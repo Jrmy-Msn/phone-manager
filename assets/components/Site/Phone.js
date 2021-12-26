@@ -127,13 +127,15 @@ function Phone({
    * En cas d'erreur une notification est affichée, et les modifications sont annulées
    */
   const updatePhone = async (event) => {
-    // recherche du poste entrain d'être modifié
-    const phone = phones.find((v) => v.id === event.row.id)
-
-    // Initialisation des données de formulaire
-    const formData = new FormData()
-
     try {
+      // recherche du poste entrain d'être modifié
+      const phone = phones.find((v) => v.id === event.row.id)
+
+      if (!phone) throw new Error("Aucun poste n'est en cours de modification")
+
+      // Initialisation des données de formulaire
+      const formData = new FormData()
+
       // Dans le cas ou la modification n'a pas été confirmée (sortie de la cellule)
       // on met à jour l'affichage avec l'ancienne valeur
       if (!valueModified) {
@@ -211,21 +213,6 @@ function Phone({
    */
   const handlePhoneEditStop = (event) => {
     updatePhone(event)
-  }
-
-  /**
-   * Met en forme les éventuelles erreurs lié à la modification d'un poste
-   */
-  const handlePhoneChangeError = (errors) => {
-    let message = (
-      <ul>
-        {errors.map((error, index) => (
-          <li key={index}>{error}</li>
-        ))}
-      </ul>
-    )
-
-    setErrorMessage(message)
   }
 
   const CustomLoadingOverlay = () => {

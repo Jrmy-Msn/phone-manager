@@ -30,19 +30,19 @@ ReactDOM.render(
     <ThemeProvider theme={theme}>
       <SnackbarProvider
         sx={{
-          '& .SnackbarItem-message': {
-            width: 1/1
-          }
+          "& .SnackbarItem-message": {
+            maxWidth: 5 / 6,
+          },
         }}
         maxSnack={5}
-        autoHideDuration={500000}
+        autoHideDuration={10000}
         ref={notistackRef}
-        // action={(key) => (
-        //   <CloseIcon
-        //     sx={{ cursor: "pointer", color: "muted" }}
-        //     onClick={onClickDismiss(key)}
-        //   />
-        // )}
+        action={(key) => (
+          <CloseIcon
+            sx={{ cursor: "pointer", color: "muted" }}
+            onClick={onClickDismiss(key)}
+          />
+        )}
       >
         <App />
       </SnackbarProvider>
