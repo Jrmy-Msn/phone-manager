@@ -39,7 +39,7 @@ class HeadBand
   {
     $this->label = $label;
     $this->connectors = new ArrayCollection();
-    for ($i = 0; $i < $numberOfConnectors; $i++) {
+    for ($i = 1; $i <= $numberOfConnectors; $i++) {
       $this->connector($i);
     }
   }
@@ -74,7 +74,7 @@ class HeadBand
    */
   public function getConnector(int $number): Connector
   {
-    return $this->connectors[$number];
+    return $this->connectors[$number - 1];
   }
 
   public function addConnector(Connector $connector): self

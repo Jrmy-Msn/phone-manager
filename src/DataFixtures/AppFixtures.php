@@ -66,14 +66,15 @@ class AppFixtures extends Fixture
       $headBand = $headbands[$randHeadBand];
       $distribution = $getDistributionRoomFn($randHeadBand);
       $distributionCard = floor($i / 8) + ($i % 8 > 0 ? 1 : 0);
-      $distributionChannel = $i % 8;
+      $distributionChannel = ($i % 8 === 0) ? 8 : $i % 8;
       $number = random_int(6000, 6200);
-      
+
+      dump($i . ', ' . $number, $aNumbers);
       while (array_search($number, $aNumbers)) {
         $number = random_int(6000, 6200);
       }
       $aNumbers[] = $number;
-
+      dump($i . ', ' . $number);
       $phone = new Phone($number);
       $phone->setReserved($randReserved);
       $phone->setLocation($randLocation);
