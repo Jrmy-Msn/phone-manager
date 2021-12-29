@@ -298,15 +298,12 @@ class Phone
       'cluster' => $this->cluster,
       'clusterCard' => $this->clusterCard,
       'clusterChannel' => $this->clusterChannel,
-      'distribution' => $this->distribution->asArray(false),
+      'distribution' => $this->distribution ? $this->distribution->asArray(false) : null,
       'distributionCard' => $this->distributionCard,
       'distributionChannel' => $this->distributionChannel,
       'type' => $this->type,
       'location' => $this->location,
-      'connector' =>
-      $this->connector
-        ? $this->connector->asArray(false)
-        : null,
+      'connector' => $this->connector ? $this->connector->asArray(false) : null,
       'socket' => $this->getSocket(),
     ];
   }
