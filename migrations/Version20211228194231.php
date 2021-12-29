@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20211223140056 extends AbstractMigration
+final class Version20211228194231 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -23,7 +23,7 @@ final class Version20211223140056 extends AbstractMigration
         $this->addSql('CREATE TABLE connector (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, head_band_id INTEGER NOT NULL, number INTEGER NOT NULL)');
         $this->addSql('CREATE INDEX IDX_148C456E13638C06 ON connector (head_band_id)');
         $this->addSql('CREATE TABLE distribution_room (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, label VARCHAR(255) NOT NULL)');
-        $this->addSql('CREATE TABLE head_band (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, distribution_room_id INTEGER NOT NULL, label VARCHAR(255) NOT NULL)');
+        $this->addSql('CREATE TABLE head_band (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, distribution_room_id INTEGER NOT NULL, label VARCHAR(255) NOT NULL, length INTEGER NOT NULL, position INTEGER NOT NULL)');
         $this->addSql('CREATE INDEX IDX_F4C5B63DB4A63E21 ON head_band (distribution_room_id)');
         $this->addSql('CREATE TABLE phone (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, distribution_id INTEGER DEFAULT NULL, connector_id INTEGER DEFAULT NULL, assigned_to VARCHAR(255) DEFAULT NULL, number INTEGER NOT NULL, reserved BOOLEAN DEFAULT NULL, cluster INTEGER DEFAULT NULL, cluster_channel INTEGER DEFAULT NULL, cluster_card INTEGER DEFAULT NULL, distribution_card INTEGER DEFAULT NULL, distribution_channel INTEGER DEFAULT NULL, type VARCHAR(255) DEFAULT NULL, location VARCHAR(255) DEFAULT NULL, socket VARCHAR(255) DEFAULT NULL)');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_444F97DD96901F54 ON phone (number)');

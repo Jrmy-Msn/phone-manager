@@ -131,6 +131,9 @@ class MainController extends AbstractController
     try {
       $connector = $phone->getConnector();
       $phone->setConnector(null);
+      $phone->setDistribution(null);
+      $phone->setDistributionCard(null);
+      $phone->setDistributionChannel(null);
       $om->persist($phone);
       $om->flush();
       return new JsonResponse([
@@ -157,10 +160,16 @@ class MainController extends AbstractController
 
     if ($form->isSubmitted() && $form->isValid()) {
       try {
+        $phone = $connector->getPhone();
+        $phone->distributionFactory(
+          $connector->getHeadBand()->getDistributionRoom(), 
+          $connector->getHeadBand(), 
+          $connector->getNumber()
+        );
         $om->persist($connector);
         $om->flush();
         return new JsonResponse([
-          'phone' => $connector->getPhone()->asArray(),
+          'phone' => $phone->asArray(),
           'connector' => $connector->asArray(),
         ]);
       } catch (Exception $exception) {

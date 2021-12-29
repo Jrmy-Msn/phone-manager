@@ -32,11 +32,11 @@ class AppFixtures extends Fixture
 
     // DISTRIBUTION ROOM
     $headbands = [];
-    $headbands[] = new HeadBand('A', 24);
-    $headbands[] = new HeadBand('B', 24);
-    $headbands[] = new HeadBand('A', 24);
-    $headbands[] = new HeadBand('B', 24);
-    $headbands[] = new HeadBand('A', 24);
+    $headbands[] = new HeadBand('A', 24, 1);
+    $headbands[] = new HeadBand('B', 24, 2);
+    $headbands[] = new HeadBand('A', 24, 1);
+    $headbands[] = new HeadBand('B', 24, 2);
+    $headbands[] = new HeadBand('A', 24, 1);
     $room1 = new DistributionRoom('SR-1', new ArrayCollection([$headbands[0], $headbands[1]]));
     $room2 = new DistributionRoom('SR-2', new ArrayCollection([$headbands[2], $headbands[3]]));
     $room3 = new DistributionRoom('SR-3', new ArrayCollection([$headbands[4]]));
@@ -65,22 +65,22 @@ class AppFixtures extends Fixture
       $randHeadBand = random_int(0, 4);
       $headBand = $headbands[$randHeadBand];
       $distribution = $getDistributionRoomFn($randHeadBand);
-      $distributionCard = floor($i / 8) + ($i % 8 > 0 ? 1 : 0);
-      $distributionChannel = ($i % 8 === 0) ? 8 : $i % 8;
       $number = random_int(6000, 6200);
 
-      dump($i . ', ' . $number, $aNumbers);
-      while (array_search($number, $aNumbers)) {
+      // dump('TEST => ' . $i . ', ' . $number);
+      while (array_search($number, $aNumbers) != false) {
+        // dump('SEARCH => ' . $i . ', ' . $number, $aNumbers);
         $number = random_int(6000, 6200);
       }
       $aNumbers[] = $number;
-      dump($i . ', ' . $number);
+      // dump('VALIDATE => ' . $i . ', ' . $number);
+
       $phone = new Phone($number);
       $phone->setReserved($randReserved);
       $phone->setLocation($randLocation);
       $phone->setAssignedTo($randAssignedTo);
       $phone->clusterFactory($randCluster, $randClusterCard, $randClusterChannel);
-      $phone->distributionFactory($distribution, $distributionCard, $distributionChannel);
+      $phone->distributionFactory($distribution, $headBand, $i);
       $phone->connectorFactory($headBand, $i);
       $phone->setType($randType);
       $manager->persist($phone);

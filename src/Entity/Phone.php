@@ -11,6 +11,8 @@ use phpDocumentor\Reflection\Types\Integer;
  */
 class Phone
 {
+
+  public const DISTRIBUTION_LENGTH = 8;
   /**
    * @ORM\Id
    * @ORM\GeneratedValue
@@ -50,6 +52,7 @@ class Phone
 
   /**
    * @ORM\ManyToOne(targetEntity="App\Entity\DistributionRoom")
+   * @ORM\JoinColumn(name="distribution_id", referencedColumnName="id", nullable="true")
    */
   private $distribution;
 
@@ -261,11 +264,22 @@ class Phone
     $this->clusterChannel = $channel;
   }
 
-  public function distributionFactory(DistributionRoom $distribution, int $card, int $channel)
+  public function distributionFactory(DistributionRoom $distribution, HeadBand $headBand, int $connectorNumber)
   {
+    // calcul du numéro de port en additionnant dans l'ordre tous les bandeaux d'un redistributeur
+    $port = 0;
+    for ($i = 1; $i < $headBand->getPosition(); $i++) {
+      $port += ($distribution->getHeadBands()[$i - 1])->getLength();
+    }
+    $port += $connectorNumber;
+
     $this->distribution = $distribution;
-    $this->distributionCard = $card;
-    $this->distributionChannel = $channel;
+    $this->distributionCard =
+      floor($port / self::DISTRIBUTION_LENGTH)
+      + ($port % self::DISTRIBUTION_LENGTH > 0 ? 1 : 0);
+    $this->distributionChannel = ($port % self::DISTRIBUTION_LENGTH === 0)
+      ? self::DISTRIBUTION_LENGTH
+      : $port % self::DISTRIBUTION_LENGTH;
   }
 
   public function connectorFactory(HeadBand $headBand, int $number)

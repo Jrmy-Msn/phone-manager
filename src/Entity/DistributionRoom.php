@@ -26,6 +26,7 @@ class DistributionRoom
 
   /**
    * @ORM\OneToMany(targetEntity=HeadBand::class, mappedBy="distributionRoom", orphanRemoval=true, cascade={"persist", "remove"})
+   * @ORM\OrderBy({"position" = "ASC"})
    */
   private $headBands;
 

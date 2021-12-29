@@ -25,6 +25,16 @@ class HeadBand
   private $label;
 
   /**
+   * @ORM\Column(type="integer")
+   */
+  private $length;
+
+  /**
+   * @ORM\Column(type="integer")
+   */
+  private $position;
+
+  /**
    * @ORM\OneToMany(targetEntity=Connector::class, mappedBy="headBand", orphanRemoval=true, cascade={"persist", "remove"})
    */
   private $connectors;
@@ -35,9 +45,11 @@ class HeadBand
    */
   private $distributionRoom;
 
-  public function __construct(string $label, int $numberOfConnectors)
+  public function __construct(string $label, int $numberOfConnectors, int $position)
   {
     $this->label = $label;
+    $this->length = $numberOfConnectors;
+    $this->position = $position;
     $this->connectors = new ArrayCollection();
     for ($i = 1; $i <= $numberOfConnectors; $i++) {
       $this->connector($i);
@@ -57,6 +69,30 @@ class HeadBand
   public function setLabel(string $label): self
   {
     $this->label = $label;
+
+    return $this;
+  }
+
+  public function getLength(): ?int
+  {
+    return $this->length;
+  }
+
+  public function setLength(int $length): self
+  {
+    $this->length = $length;
+
+    return $this;
+  }
+
+  public function getPosition(): ?int
+  {
+    return $this->position;
+  }
+
+  public function setPosition(int $position): self
+  {
+    $this->position = $position;
 
     return $this;
   }
@@ -128,6 +164,8 @@ class HeadBand
     $array = [
       'id' => $this->id,
       'label' => $this->label,
+      'legnth' => $this->length,
+      'position' => $this->position,
       'connectors' => $connectorsAsArray,
       'distributionRoom' => $this->distributionRoom->asArray(false)
     ];
