@@ -171,9 +171,9 @@ function Phone({
         `${routes.timone_phone_update}/${phone.id}`,
         formData
       )
-
+      
       // mise à jour des données clientes par les données seveurs
-      handlePhonesChange(data)
+      handlePhonesChange(data.phone, data.otherPhone)
     } catch (error) {
       let errors = []
 
@@ -210,7 +210,7 @@ function Phone({
    * Sinon "model" est vide et "undefined" est utilisé
    */
   const handlePhoneModelChange = (model, details) => {
-    setValueChanged(Object.keys(model) === 0 ? undefined : model)
+    setValueModified(Object.keys(model) === 0 ? undefined : model)
   }
 
   /**
@@ -221,9 +221,6 @@ function Phone({
   const handlePhoneEditCommit = (id, event) => {
     if (event instanceof PointerEvent) {
       setValueModified(undefined)
-      setValueChanged(undefined)
-    } else {
-      setValueModified(valueChanged)
     }
   }
 
@@ -231,10 +228,7 @@ function Phone({
    * En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
    */
   const handlePhoneEditStop = async (params, event) => {
-    await updatePhone(params)
-    setValueToModified(undefined)
-    setValueModified(undefined)
-    setValueChanged(undefined)
+    updatePhone(params)
   }
 
   const CustomLoadingOverlay = () => {

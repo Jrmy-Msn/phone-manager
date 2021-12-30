@@ -8,6 +8,7 @@ use App\Entity\Phone;
 use App\Form\PhoneType;
 use App\Form\ConnectorType;
 use App\Repository\PhoneRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,6 +20,7 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class MainController extends AbstractController
@@ -68,7 +70,10 @@ class MainController extends AbstractController
       }
       return new JsonResponse($distributionsAsArray);
     } catch (Exception $exception) {
-      return new JsonResponse(['Erreur lors de la récupération de la liste des salles de répartiteur'], 400);
+      return new JsonResponse([
+        'Erreur lors de la récupération de la liste des salles de répartiteur',
+        $this->translator->trans($exception->getMessage())
+      ], 400);
     }
   }
 
@@ -88,7 +93,10 @@ class MainController extends AbstractController
       }
       return new JsonResponse($phonesAsArray);
     } catch (Exception $exception) {
-      return new JsonResponse(['Erreur lors de la récupération de la liste des postes'], 400);
+      return new JsonResponse([
+        'Erreur lors de la récupération de la liste des postes',
+        $this->translator->trans($exception->getMessage())
+      ], 400);
     }
   }
 
@@ -107,12 +115,37 @@ class MainController extends AbstractController
 
     if ($form->isSubmitted() && $form->isValid()) {
       try {
+
+        $connector = $phone->connectorFactoryReverse(
+          $phone->getDistribution(),
+          $phone->getDistributionCard(),
+          $phone->getDistributionChannel(),
+        );
+
+        $otherPhone = $connector->getPhone();
+        if ($otherPhone) {
+          $otherPhone->setConnector(null);
+          $otherPhone->setDistribution(null);
+          $otherPhone->setDistributionCard(null);
+          $otherPhone->setDistributionChannel(null);
+          $om->persist($otherPhone);
+          $om->flush();
+        }
+
+        $phone->setConnector($connector);
         $om->persist($phone);
         $om->flush();
       } catch (Exception $exception) {
-        return new JsonResponse(['Erreur lors de la mise à jour du poste ' . $phone], 400);
+        return new JsonResponse([
+          'Erreur lors de la mise à jour du poste ' . $phone,
+          $this->translator->trans($exception->getMessage())
+        ], 400);
       }
-      return new JsonResponse($phone->asArray());
+
+      return new JsonResponse([
+        'phone' => $phone->asArray(),
+        'otherPhone' => $otherPhone ? $otherPhone->asArray() : null
+      ]);
     }
 
     $errors = $this->getErrorMessages(($form));
@@ -141,7 +174,11 @@ class MainController extends AbstractController
         'connector' => $connector ? $connector->asArray() : null,
       ]);
     } catch (Exception $exception) {
-      return new JsonResponse(['Erreur lors du débranchement du poste ' . $phone], 400);
+      return new JsonResponse([
+        'Erreur lors du débranchement du poste ' .
+          $phone,
+        $this->translator->trans($exception->getMessage())
+      ], 400);
     }
   }
 
@@ -162,8 +199,8 @@ class MainController extends AbstractController
       try {
         $phone = $connector->getPhone();
         $phone->distributionFactory(
-          $connector->getHeadBand()->getDistributionRoom(), 
-          $connector->getHeadBand(), 
+          $connector->getHeadBand()->getDistributionRoom(),
+          $connector->getHeadBand(),
           $connector->getNumber()
         );
         $om->persist($connector);
@@ -173,7 +210,11 @@ class MainController extends AbstractController
           'connector' => $connector->asArray(),
         ]);
       } catch (Exception $exception) {
-        return new JsonResponse(['Erreur lors de la mise à jour du connecteur ' . $connector], 400);
+        return new JsonResponse([
+          'Erreur lors de la mise à jour du connecteur ' .
+            $connector,
+          $this->translator->trans($exception->getMessage())
+        ], 400);
       }
     }
 

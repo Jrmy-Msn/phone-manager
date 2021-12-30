@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\PhoneRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
 use phpDocumentor\Reflection\Types\Integer;
 
 /**
@@ -286,6 +287,25 @@ class Phone
   {
     $connector = $headBand->getConnector($number);
     $this->setConnector($connector);
+  }
+
+  public function connectorFactoryReverse(DistributionRoom $distribution, $distributionCard, int $distributionChannel) :Connector
+  {
+    // calcul du numéro de port en additionnant dans l'ordre tous les bandeaux d'un redistributeur
+    $headBand = null;
+    $length = 0;
+    $port = (($distributionCard - 1) * Phone::DISTRIBUTION_LENGTH) + $distributionChannel;
+    for ($i = 0; $i < count($distribution->getHeadBands()); $i++) {
+      $headBand = $distribution->getHeadBands()->get($i);
+
+      if ($port <= $length + $headBand->getLength()) {
+        $port -= $length;
+        break;
+      }
+      $length += $headBand->getLength();
+    }
+
+    return $headBand->getConnector($port);
   }
 
   public function asArray(?bool $deep = true)

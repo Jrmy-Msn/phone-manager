@@ -37,11 +37,17 @@ function Site({
   }
 
   /**
-   * Met à jour à l'affichage, le poste avec les données fournies.
+   * Met à jour à l'affichage, les postes avec les données fournies.
    * Affiche eventuellement un message de réussite
    */
-  const handlePhonesChange = (phone) => {
-    setPhones(phones.map((v) => (phone && v.id === phone.id ? phone : v)))
+  const handlePhonesChange = (phone, otherPhone) => {
+    setPhones
+      (phones.map((v) => {
+        if (phone && v.id === phone.id) return phone
+        if (otherPhone && v.id === otherPhone.id) return otherPhone
+        return v
+      })
+    )
     enqueueSnackbar(
       <Notification
         message={`Mise à jour du N° ${phone.number} : <strong>RÉUSSIE</strong>`}
