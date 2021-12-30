@@ -2,7 +2,7 @@ export const PHONE_COLUMNS_DESCRIPTION = [
   {
     field: "number",
     sortable: true,
-    type: "unmber",
+    type: "string",
     headerName: "N° de poste",
     width: 120,
     align: "center",

@@ -358,8 +358,9 @@ function DistributionRoom({
   }
 
   /**
-   * Dans ce cas, la validation par la touche "ENTREE" n'a pas été effectuée, cela revient à annuler l'opération
-   * en quittant la cellule sans confirmation.
+   * Si la modification a été validée (touche "ENTREE"), "event.cellMode" n'est pas définit.
+   * La valeur de modification est récupérée
+   * Sinon c'est que la modification est annulée est "undefined est utilisé"
    */
   const handleDistributionEditCommit = (event) => {
     setValueModified(event.cellMode ? undefined : event.value)
@@ -368,23 +369,10 @@ function DistributionRoom({
   /**
    * En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
    */
-  const handleDistributionEditStop = (event) => {
-    updateDistribution(event)
-  }
-
-  /**
-   * Met en forme les éventuelles erreurs lié à la modification d'un redistributeur
-   */
-  const handleConnectorChangeError = (errors) => {
-    let message = (
-      <ul>
-        {errors.map((error, index) => (
-          <li key={index}>{error}</li>
-        ))}
-      </ul>
-    )
-
-    setErrorMessage(message)
+  const handleDistributionEditStop = async (event) => {
+    await updateDistribution(event)
+    setValueToModified(undefined)
+    setValueModified(undefined)
   }
 
   // --> A chaque fois que la liste des redistributeurs change

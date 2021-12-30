@@ -195,7 +195,9 @@ class MainController extends AbstractController
 
     foreach ($form->all() as $child) {
       if (!$child->isValid()) {
-        $errors[$child->getName()] = $this->getErrorMessages($child);
+        foreach ($this->getErrorMessages($child) as $msg) {
+          $errors[] = 'Champs "' . $child->getName() . '" : ' . $msg;
+        }
       }
     }
 

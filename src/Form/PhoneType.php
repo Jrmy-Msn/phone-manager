@@ -19,7 +19,7 @@ class PhoneType extends AbstractType
     {
         $builder
             ->add('assignedTo', TextType::class)
-            ->add('number')
+            // ->add('number')
             ->add('reserved', CheckboxType::class)
             ->add('cluster', IntegerType::class)
             ->add('clusterChannel', IntegerType::class)

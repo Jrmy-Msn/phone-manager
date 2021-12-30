@@ -26,8 +26,10 @@ function Phone({
 }) {
   // état de la valeur d'un champ avant modification
   const [valueToModified, setValueToModified] = useState()
-  // état de la valeur d'un champ après modification
+  // état de la valeur d'un poste après modification
   const [valueModified, setValueModified] = useState()
+  // état de la valeur d'un poste en cours de modification
+  const [valueChanged, setValueChanged] = useState()
   // état du backdrop lors des modifications
   const [backdropOpen, setBackdropOpen] = useState(false)
   // état du tableau de données
@@ -130,13 +132,13 @@ function Phone({
    * et ce qui est affiché
    * En cas d'erreur une notification est affichée, et les modifications sont annulées
    */
-  const updatePhone = async (event) => {
+  const updatePhone = async (params) => {
     // Blocage des intéractions le temps que les modifications soient prises en compte
     setBackdropOpen(true)
 
     try {
       // recherche du poste entrain d'être modifié
-      const phone = phones.find((v) => v.id === event.row.id)
+      const phone = phones.find((v) => v.id === params.row.id)
 
       if (!phone) throw new Error("Aucun poste n'est en cours de modification")
 
@@ -145,7 +147,7 @@ function Phone({
 
       // Dans le cas ou la modification n'a pas été confirmée (sortie de la cellule)
       // on met à jour l'affichage avec l'ancienne valeur
-      if (!valueModified) {
+      if (!valueModified || !valueModified[params.id]) {
         // mise à jour des données clientes par les anciennes valeurs
         // annulation de la modification
         handlePhonesChangeInfo(phone)
@@ -156,11 +158,9 @@ function Phone({
       // Chaque champs est créé avec sa valeur.
       // Si, le champs concerné est celui en cours de modification, c'est la valeur sauvegardée dans ("valueModified")
       // qui est prise sinon c'est la valeur présente dans la cellule.
-      grid.columns.forEach((column) => {
-        // if (!grid.columns.find((v) => v.field === key)) continue
-        const key = column.field
+      Object.keys(valueModified[params.id]).forEach((key) => {
         const formField = `phone[${key}]`
-        const value = key === event.field ? valueModified : event.row[key]
+        const value = valueModified[params.id][key].value
         // cas particulier pour le champs "distribution", la valeur est un objet, et il faut utilisé seulement l'id comme valeur pour le formulaire
         const formValue = key === "distribution" ? value.id : value
         formField && formValue && formData.append(formField, formValue)
@@ -186,11 +186,8 @@ function Phone({
         errors.push(error.message)
       }
 
-      // mise à jour avec l'ancienne valeur
-      if (phone) phone[event.field] = valueToModified
-
       // mise à jour des données clientes par les anciennes valeurs
-      handlePhonesChangeError(phone, errors)
+      handlePhonesChangeError(valueToModified, errors)
     } finally {
       // Blocage des intéractions
       setBackdropOpen(false)
@@ -201,27 +198,43 @@ function Phone({
    * Avant la modification de la cellule, nous en gardons la valeur d'origine pour permetttre
    * un retour en arrire en casd'annulation de l'opération.
    */
-  const handlePhoneEditStart = (event) => {
+  const handlePhoneEditStart = (params, event) => {
     // Avant la modification de la cellule, nous en gardons la valeur d'origine pour permetttre
     // un retour en arrire en cas d'annulation de l'opération.
-    setValueToModified(event.value)
+    setValueToModified(params.row)
   }
 
   /**
-   * Dans ce cas, la validation par la touche "ENTREE" n'a pas été effectuée, cela revient à annuler l'opération
-   * en quittant la cellule sans confirmation.
+   * Si une valeur est modification "model" est définit et contient les valeurs de la ligne
+   * en cours de modification.
+   * Sinon "model" est vide et "undefined" est utilisé
    */
-  const handlePhoneEditCommit = (event) => {
-    // Dans ce cas, la validation par la touche "ENTREE" n'a pas été effectuée, cela revient à annuler l'opération
-    // en quittant la cellule sans confirmation.
-    setValueModified(event.cellMode ? undefined : event.value)
+  const handlePhoneModelChange = (model, details) => {
+    setValueChanged(Object.keys(model) === 0 ? undefined : model)
+  }
+
+  /**
+   * Si il y a eu annulation en cliquant à l'extérieur, "event" est de type PinterEvent,
+   * alors undefined est utilisé pour effacer les traces d'une modification.
+   * Sinon c'est qu'il y a eu confirmation (touche ENTREE).
+   */
+  const handlePhoneEditCommit = (id, event) => {
+    if (event instanceof PointerEvent) {
+      setValueModified(undefined)
+      setValueChanged(undefined)
+    } else {
+      setValueModified(valueChanged)
+    }
   }
 
   /**
    * En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
    */
-  const handlePhoneEditStop = (event) => {
-    updatePhone(event)
+  const handlePhoneEditStop = async (params, event) => {
+    await updatePhone(params)
+    setValueToModified(undefined)
+    setValueModified(undefined)
+    setValueChanged(undefined)
   }
 
   const CustomLoadingOverlay = () => {
@@ -264,14 +277,16 @@ function Phone({
       </Backdrop>
       <div style={{ flexGrow: 1 }}>
         <DataGrid
+          editMode="row"
           loading={loading}
           rows={grid.rows}
           columns={grid.columns}
           disableSelectionOnClick
           autoHeight
-          onCellEditStart={handlePhoneEditStart}
-          onCellEditCommit={handlePhoneEditCommit}
-          onCellEditStop={handlePhoneEditStop}
+          onRowEditStart={handlePhoneEditStart}
+          onEditRowsModelChange={handlePhoneModelChange}
+          onRowEditCommit={handlePhoneEditCommit}
+          onRowEditStop={handlePhoneEditStop}
           localeText={GRID_FR_LOCALE_TEXT}
           components={{
             LoadingOverlay: CustomLoadingOverlay,
