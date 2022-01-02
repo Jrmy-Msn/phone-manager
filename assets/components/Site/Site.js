@@ -41,8 +41,8 @@ function Site({
    * Affiche eventuellement un message de réussite
    */
   const handlePhonesChange = (phone, otherPhone) => {
-    setPhones
-      (phones.map((v) => {
+    setPhones(
+      phones.map((v) => {
         if (phone && v.id === phone.id) return phone
         if (otherPhone && v.id === otherPhone.id) return otherPhone
         return v
@@ -123,45 +123,45 @@ function Site({
     )
 
     // récupération des du redistributeur du "fromConnector"
-    const distributionId1 =
-      fromConnector && fromConnector.headBand.distributionRoom.id
+    // const distributionId1 =
+      // fromConnector && fromConnector.headBand.distributionRoom.id
     // récupération des du bandeau du "fromConnector"
-    const headBandId1 = fromConnector && fromConnector.headBand.id
+    // const headBandId1 = fromConnector && fromConnector.headBand.id
     // récupération des du redistributeur du "toConnector"
-    const distributionId2 =
-      toConnector && toConnector.headBand.distributionRoom.id
+    // const distributionId2 =
+      // toConnector && toConnector.headBand.distributionRoom.id
     // récupération des du bandeau du "toConnector"
-    const headBandId2 = toConnector && toConnector.headBand.id
+    // const headBandId2 = toConnector && toConnector.headBand.id
 
     // mise à jour des données clientes des redistributeurs
-    setDistributions(
-      distributions.map((distribution) => {
-        // recherche du bandeau du "fromConnector" dans les données clientes
-        const headBand1 = distribution.headBands.find(
-          (h) => h.id === headBandId1
-        )
-        // recherche du bandeau du "toConnector" dans les données clientes
-        const headBand2 = distribution.headBands.find(
-          (h) => h.id === headBandId2
-        )
+    // setDistributions(
+    //   distributions.map((distribution) => {
+    //     // recherche du bandeau du "fromConnector" dans les données clientes
+    //     const headBand1 = distribution.headBands.find(
+    //       (h) => h.id === headBandId1
+    //     )
+    //     // recherche du bandeau du "toConnector" dans les données clientes
+    //     const headBand2 = distribution.headBands.find(
+    //       (h) => h.id === headBandId2
+    //     )
 
-        // si la donnée courante correspond au bandeau et redistributeur du "fromConnector"
-        // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "fromConnector"
-        if (distribution.id === distributionId1 && headBand1) {
-          headBand1.connectors.map((c) =>
-            c.id === fromConnector.id ? fromConnector : c
-          )
-          // si la donnée courante correspond au bandeau et redistributeur du "toConnector"
-          // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "toConnector"
-        } else if (distribution.id === distributionId2 && headBand2) {
-          headBand2.connectors.map((c) =>
-            c.id === toConnector.id ? fromConnector : c
-          )
-        }
-        // la valuer modifiée ou non est retournée
-        return distribution
-      })
-    )
+    //     // si la donnée courante correspond au bandeau et redistributeur du "fromConnector"
+    //     // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "fromConnector"
+    //     if (distribution.id === distributionId1 && headBand1) {
+    //       headBand1.connectors.map((c) =>
+    //         c.id === fromConnector.id ? fromConnector : c
+    //       )
+    //       // si la donnée courante correspond au bandeau et redistributeur du "toConnector"
+    //       // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "toConnector"
+    //     } else if (distribution.id === distributionId2 && headBand2) {
+    //       headBand2.connectors.map((c) =>
+    //         c.id === toConnector.id ? fromConnector : c
+    //       )
+    //     }
+    //     // la valuer modifiée ou non est retournée
+    //     return distribution
+    //   })
+    // )
   }
 
   /**
@@ -221,19 +221,19 @@ function Site({
    */
   const handleDistributionsChangeInfo = (distribution, headBand, connector) => {
     // mise à jour des données clientes du redistributeur
-    setDistributions(
-      distributions.map((d) => {
-        // si la donnée courante correspond au bandeau et redistributeur du "connector"
-        // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector"
-        if (d.id === distribution.id && headBand) {
-          headBand.connectors.map((c) =>
-            c.id === connector.id ? connector : c
-          )
-        }
-        // la valuer modifiée ou non est retournée
-        return d
-      })
-    )
+    // setDistributions(
+    //   distributions.map((d) => {
+    //     // si la donnée courante correspond au bandeau et redistributeur du "connector"
+    //     // on remplace la donnée du connecteur actuel par celle récupérée du serveur, à savoir "connector"
+    //     if (d.id === distribution.id && headBand) {
+    //       headBand.connectors.map((c) =>
+    //         c.id === connector.id ? connector : c
+    //       )
+    //     }
+    //     // la valuer modifiée ou non est retournée
+    //     return d
+    //   })
+    // )
     enqueueSnackbar(
       <Notification
         message={`Modification de ${distribution.label} &ndash; ${headBand.label} &rArr; ${connector.number}  : <strong>ANNULÉE</strong>`}

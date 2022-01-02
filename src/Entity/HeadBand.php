@@ -164,12 +164,12 @@ class HeadBand
     $array = [
       'id' => $this->id,
       'label' => $this->label,
-      'legnth' => $this->length,
+      'length' => $this->length,
       'position' => $this->position,
       'connectors' => $connectorsAsArray,
       'distributionRoom' => $this->distributionRoom->asArray(false)
     ];
-    
+
     return $array;
   }
 }

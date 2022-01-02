@@ -23,21 +23,6 @@ export const PHONE_COLUMNS_DESCRIPTION = [
     align: "center",
   },
   {
-    field: "location",
-    editable: true,
-    type: "string",
-    headerName: "Localisation",
-    width: 100,
-  },
-  {
-    field: "assignedTo",
-    editable: true,
-    type: "string",
-    headerName: "Assigné à",
-    width: 120,
-    align: "center",
-  },
-  {
     field: "cluster",
     editable: true,
     filterable: false,
@@ -80,6 +65,21 @@ export const PHONE_COLUMNS_DESCRIPTION = [
     type: "number",
     headerName: "D. Voie",
     width: 80,
+    align: "center",
+  },
+  {
+    field: "location",
+    editable: true,
+    type: "string",
+    headerName: "Localisation",
+    width: 100,
+  },
+  {
+    field: "assignedTo",
+    editable: true,
+    type: "string",
+    headerName: "Assigné à",
+    width: 120,
     align: "center",
   },
 ]

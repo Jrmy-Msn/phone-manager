@@ -28,8 +28,6 @@ function Phone({
   const [valueToModified, setValueToModified] = useState()
   // état de la valeur d'un poste après modification
   const [valueModified, setValueModified] = useState()
-  // état de la valeur d'un poste en cours de modification
-  const [valueChanged, setValueChanged] = useState()
   // état du backdrop lors des modifications
   const [backdropOpen, setBackdropOpen] = useState(false)
   // état du tableau de données
@@ -45,7 +43,7 @@ function Phone({
     let columns = [...PHONE_COLUMNS_DESCRIPTION],
       rows = []
 
-    columns.splice(8, 0, {
+    columns.splice(6, 0, {
       field: "distribution",
       editable: true,
       filterable: false,
@@ -74,6 +72,24 @@ function Phone({
                   id: params.id,
                   field: params.field,
                   value: newValue,
+                },
+                event
+              )
+              // effacement de la valeur du distributionCard
+              params.api.setEditCellValue(
+                {
+                  id: params.id,
+                  field: "distributionCard",
+                  value: null,
+                },
+                event
+              )
+              // effacement de la valeur du distributionChannel
+              params.api.setEditCellValue(
+                {
+                  id: params.id,
+                  field: "distributionChannel",
+                  value: null,
                 },
                 event
               )

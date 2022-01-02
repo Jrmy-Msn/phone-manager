@@ -122,6 +122,8 @@ class MainController extends AbstractController
           $phone->getDistributionChannel(),
         );
 
+        if (!$connector) throw new Exception('Les données "distributionCard" et/ou "distributionChannel" n\'existe pas pour le redistributeur ' . $phone->getDistribution()->getLabel());
+
         $otherPhone = $connector->getPhone();
         if ($otherPhone) {
           $otherPhone->setConnector(null);

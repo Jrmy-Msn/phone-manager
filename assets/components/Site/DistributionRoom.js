@@ -328,6 +328,8 @@ function DistributionRoom({
         toConnector
       )
     } finally {
+      // Mise à jour de l'affcihage des redistribteur
+      constructGrid()
       // Blocage des intéractions
       setBackdropOpen(false)
     }

@@ -289,7 +289,7 @@ class Phone
     $this->setConnector($connector);
   }
 
-  public function connectorFactoryReverse(DistributionRoom $distribution, $distributionCard, int $distributionChannel) :Connector
+  public function connectorFactoryReverse(DistributionRoom $distribution, $distributionCard, int $distributionChannel): ?Connector
   {
     // calcul du numéro de port en additionnant dans l'ordre tous les bandeaux d'un redistributeur
     $headBand = null;
@@ -305,7 +305,7 @@ class Phone
       $length += $headBand->getLength();
     }
 
-    return $headBand->getConnector($port);
+    return $port <= $headBand->getLength() ? $headBand->getConnector($port) : null;
   }
 
   public function asArray(?bool $deep = true)
