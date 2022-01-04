@@ -2,7 +2,7 @@ import axios from "axios"
 import React, { useEffect, useState } from "react"
 import { useSnackbar } from "notistack"
 import { NavLink } from "react-router-dom"
-import { Alert, Box, Typography, Snackbar, Tab } from "@mui/material"
+import { Box, Typography, Tab } from "@mui/material"
 import { TabContext, TabList, TabPanel } from "@mui/lab"
 import DnsIcon from "@mui/icons-material/Dns"
 import PhoneIcon from "@mui/icons-material/Phone"
@@ -124,12 +124,12 @@ function Site({
 
     // récupération des du redistributeur du "fromConnector"
     // const distributionId1 =
-      // fromConnector && fromConnector.headBand.distributionRoom.id
+    // fromConnector && fromConnector.headBand.distributionRoom.id
     // récupération des du bandeau du "fromConnector"
     // const headBandId1 = fromConnector && fromConnector.headBand.id
     // récupération des du redistributeur du "toConnector"
     // const distributionId2 =
-      // toConnector && toConnector.headBand.distributionRoom.id
+    // toConnector && toConnector.headBand.distributionRoom.id
     // récupération des du bandeau du "toConnector"
     // const headBandId2 = toConnector && toConnector.headBand.id
 
@@ -347,27 +347,20 @@ function Site({
     <Box
       className={`Site`}
       sx={{
+        bgcolor: "background.default",
         height: "100vh",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <HeaderBar auth={auth} admin={admin} routes={routes} />
+      <HeaderBar label={label} auth={auth} admin={admin} routes={routes} />
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
           height: "100vh",
-          padding: 2,
         }}
       >
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{ mb: 2, fontWeight: "500" }}
-        >
-          Gestion du site : {label}
-        </Typography>
         <TabContext value={tab}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList onChange={handleTabChange}>
@@ -389,7 +382,7 @@ function Site({
               />
             </TabList>
           </Box>
-          <TabPanel sx={{ px: 0 }} value="phone">
+          <TabPanel sx={{ height: 1 / 1, padding: "12px 0 0 0" }} value="phone">
             <Phone
               routes={routes}
               tab={tab}
@@ -401,7 +394,7 @@ function Site({
               loading={loading}
             />
           </TabPanel>
-          <TabPanel sx={{ px: 0 }} value="distribution">
+          <TabPanel sx={{ height: 1 / 1, px: 0 }} value="distribution">
             <DistributionRoom
               routes={routes}
               tab={tab}

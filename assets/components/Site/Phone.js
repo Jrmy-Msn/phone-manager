@@ -2,15 +2,16 @@ import axios from "axios"
 import React, { useEffect, useState } from "react"
 import {
   Box,
-  Typography,
-  LinearProgress,
   Autocomplete,
   TextField,
   Backdrop,
 } from "@mui/material"
 import CircularProgress from "@mui/material/CircularProgress"
-import PhoneDisabledIcon from "@mui/icons-material/PhoneDisabled"
-import { DataGrid, GridToolbar, GridOverlay } from "@mui/x-data-grid"
+import StyledGrid, {
+  CustomGridToolbar,
+  CustomLoadingOverlay,
+  CustomNoRowsOverlay,
+} from "./StyledGrid"
 import { GRID_FR_LOCALE_TEXT } from "./GridLocaleText"
 import { PHONE_COLUMNS_DESCRIPTION } from "./PhoneColumnsDescription"
 
@@ -148,7 +149,7 @@ function Phone({
    * et ce qui est affiché
    * En cas d'erreur une notification est affichée, et les modifications sont annulées
    */
-  const updatePhone = async (params) => {
+  const updatePhone = async (params, updatedValue) => {
     // Blocage des intéractions le temps que les modifications soient prises en compte
     setBackdropOpen(true)
 
@@ -163,7 +164,7 @@ function Phone({
 
       // Dans le cas ou la modification n'a pas été confirmée (sortie de la cellule)
       // on met à jour l'affichage avec l'ancienne valeur
-      if (!valueModified || !valueModified[params.id]) {
+      if (!updatedValue || !updatedValue[params.id]) {
         // mise à jour des données clientes par les anciennes valeurs
         // annulation de la modification
         handlePhonesChangeInfo(phone)
@@ -172,13 +173,13 @@ function Phone({
 
       // Construction du formulaire de donnée pour le serveur
       // Chaque champs est créé avec sa valeur.
-      // Si, le champs concerné est celui en cours de modification, c'est la valeur sauvegardée dans ("valueModified")
+      // Si, le champs concerné est celui en cours de modification, c'est la valeur sauvegardée dans ("updatedValue")
       // qui est prise sinon c'est la valeur présente dans la cellule.
-      Object.keys(valueModified[params.id]).forEach((key) => {
+      Object.keys(updatedValue[params.id]).forEach((key) => {
         const formField = `phone[${key}]`
-        const value = valueModified[params.id][key].value
+        const value = updatedValue[params.id][key].value
         // cas particulier pour le champs "distribution", la valeur est un objet, et il faut utilisé seulement l'id comme valeur pour le formulaire
-        const formValue = key === "distribution" ? value.id : value
+        const formValue = key === "distribution" && value ? value.id : value
         formField && formValue && formData.append(formField, formValue)
       })
 
@@ -187,7 +188,7 @@ function Phone({
         `${routes.timone_phone_update}/${phone.id}`,
         formData
       )
-      
+
       // mise à jour des données clientes par les données seveurs
       handlePhonesChange(data.phone, data.otherPhone)
     } catch (error) {
@@ -243,26 +244,12 @@ function Phone({
   /**
    * En sortie de cellule, si une nouvelle valeur est présente (valueModified), les redistributeurs sont mis à jour
    */
-  const handlePhoneEditStop = async (params, event) => {
-    updatePhone(params)
-  }
-
-  const CustomLoadingOverlay = () => {
-    return (
-      <GridOverlay>
-        <div style={{ position: "absolute", top: 0, width: "100%" }}>
-          <LinearProgress />
-        </div>
-      </GridOverlay>
-    )
-  }
-
-  const CustomNoRowsOverlay = () => {
-    return (
-      <GridOverlay sx={{ display: "flex", flexDirection: "column" }}>
-        <PhoneDisabledIcon sx={{ fontSize: "3rem" }} color="disabled" />
-        <Typography component="em">Aucun poste</Typography>
-      </GridOverlay>
+  const handlePhoneEditStop = (params, event) => {
+    updatePhone(
+      params,
+      event.nativeEvent instanceof KeyboardEvent && event.code === "Escape"
+        ? undefined
+        : valueModified
     )
   }
 
@@ -275,6 +262,7 @@ function Phone({
   return (
     <Box
       sx={{
+        height: 1 / 1,
         position: "relative",
         display: "flex",
       }}
@@ -286,13 +274,13 @@ function Phone({
         <CircularProgress color="inherit" />
       </Backdrop>
       <div style={{ flexGrow: 1 }}>
-        <DataGrid
+        <StyledGrid
+          sx={{}}
           editMode="row"
           loading={loading}
           rows={grid.rows}
           columns={grid.columns}
           disableSelectionOnClick
-          autoHeight
           onRowEditStart={handlePhoneEditStart}
           onEditRowsModelChange={handlePhoneModelChange}
           onRowEditCommit={handlePhoneEditCommit}
@@ -300,7 +288,7 @@ function Phone({
           localeText={GRID_FR_LOCALE_TEXT}
           components={{
             LoadingOverlay: CustomLoadingOverlay,
-            Toolbar: GridToolbar,
+            Toolbar: CustomGridToolbar,
             NoRowsOverlay: CustomNoRowsOverlay,
           }}
         />

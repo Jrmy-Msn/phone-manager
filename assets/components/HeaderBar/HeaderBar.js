@@ -17,7 +17,12 @@ import "./HeaderBar.scss"
  * @param {Boolean} noActions - Masque les actions possible à droite de la barre d'en-tête
  * @returns
  */
-function HeaderBar({ auth = false, routes = {}, noActions = false }) {
+function HeaderBar({
+  label = null,
+  auth = false,
+  routes = {},
+  noActions = false,
+}) {
   const [appName, setAppName] = useState("")
 
   const [moreMenuAnchorEl, setMoreMenuAnchorEl] = useState(null)
@@ -69,10 +74,10 @@ function HeaderBar({ auth = false, routes = {}, noActions = false }) {
 
   return (
     <Box sx={{ flexGrow: 0, height: "65px" }}>
-      <AppBar position="static">
+      <AppBar position="fixed" color="primary" enableColorOnDark>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {appName}
+            {appName} &#x21E8; {label}
           </Typography>
           {noActions ? (
             ""

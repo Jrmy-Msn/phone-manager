@@ -115,26 +115,35 @@ class MainController extends AbstractController
 
     if ($form->isSubmitted() && $form->isValid()) {
       try {
+        $connector = null;
+        $otherPhone = null;
 
-        $connector = $phone->connectorFactoryReverse(
-          $phone->getDistribution(),
-          $phone->getDistributionCard(),
-          $phone->getDistributionChannel(),
-        );
-
-        if (!$connector) throw new Exception('Les données "distributionCard" et/ou "distributionChannel" n\'existe pas pour le redistributeur ' . $phone->getDistribution()->getLabel());
-
-        $otherPhone = $connector->getPhone();
-        if ($otherPhone) {
-          $otherPhone->setConnector(null);
-          $otherPhone->setDistribution(null);
-          $otherPhone->setDistributionCard(null);
-          $otherPhone->setDistributionChannel(null);
-          $om->persist($otherPhone);
-          $om->flush();
+        if ($phone->getDistribution() && $phone->getDistributionCard() && $phone->getDistributionChannel()) {
+          $connector = $phone->connectorFactoryReverse(
+            $phone->getDistribution(),
+            $phone->getDistributionCard(),
+            $phone->getDistributionChannel(),
+          );
+        } else if ($phone->getDistribution() || $phone->getDistributionCard() || $phone->getDistributionChannel()) {
+          
         }
 
-        $phone->setConnector($connector);
+        if ($connector) {
+          $otherPhone = $connector->getPhone();
+          if ($otherPhone) {
+            $otherPhone->setConnector(null);
+            $otherPhone->setDistribution(null);
+            $otherPhone->setDistributionCard(null);
+            $otherPhone->setDistributionChannel(null);
+            $om->persist($otherPhone);
+            $om->flush();
+          }
+
+          $phone->setConnector($connector);
+        } else if ($phone->getDistribution() || $phone->getDistributionCard() || $phone->getDistributionChannel()) {
+          throw new Exception('Les données "distributionCard" et/ou "distributionChannel" n\'existe pas pour le redistributeur ' . $phone->getDistribution()->getLabel());
+        }
+
         $om->persist($phone);
         $om->flush();
       } catch (Exception $exception) {

@@ -386,6 +386,7 @@ function DistributionRoom({
   return (
     <Box
       sx={{
+        height: 1 / 1,
         position: "relative",
         display: "flex",
       }}
