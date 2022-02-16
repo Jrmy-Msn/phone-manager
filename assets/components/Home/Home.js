@@ -1,10 +1,4 @@
-import {
-  CardContent,
-  Card,
-  Box,
-  Backdrop,
-  Typography,
-} from "@mui/material"
+import { CardContent, Card, Box, Backdrop, Typography } from "@mui/material"
 import React, { useEffect, useState } from "react"
 import HeaderBar from "../HeaderBar/HeaderBar"
 import "./Home.scss"
@@ -13,6 +7,7 @@ function Home({ auth = false, admin = false, routes = {} }) {
   return (
     <Box
       sx={{
+        bgcolor: "background.default",
         height: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -37,6 +32,7 @@ function Home({ auth = false, admin = false, routes = {} }) {
         )}
         <Typography
           variant="h4"
+          color="primary"
           align="center"
           sx={{ mb: 2, fontWeight: "500" }}
         >
